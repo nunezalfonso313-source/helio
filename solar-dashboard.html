@@ -887,7 +887,7 @@ function initStars() {
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 let W, H, cx, cy;
-let scale = 1, offsetX = 0, offsetY = 0;
+let scale = 0.72, offsetX = 0, offsetY = 0;
 let isDragging = false, dragStart = {x:0,y:0};
 let hitTargets = [];
 
@@ -904,7 +904,7 @@ window.addEventListener('resize', resize);
 resize();
 
 function orbitPxRadius(ua) {
-  return ua * getBaseScale() * scale;
+  const logUa = Math.log(ua + 1) / Math.log(42) * 42; return logUa * getBaseScale() * scale;
 }
 
 function bodyPos(key, now) {
