@@ -223,7 +223,7 @@ body {
   padding-top: 60px;
 }
 
-#planet-canvas { background: transparent;
+#planet-canvas {
   display: block;
 }
 
@@ -361,7 +361,7 @@ body {
 /* ── LIVE BADGE ── */
 #live-badge {
   position: fixed;
-  bottom: 38px;
+  bottom: 36px;
   right: 20px;
   font-size: 0.65rem;
   letter-spacing: 0.15em;
@@ -388,13 +388,16 @@ body {
 /* ── LEGEND ── */
 #legend {
   position: fixed;
-  bottom: 38px;
-  left: 20px;
+  bottom: 16px;
+  left: 0;
+  right: 0;
+  text-align: center;
   font-size: 0.62rem;
   color: var(--dim);
   letter-spacing: 0.08em;
   z-index: 100;
-  line-height: 1.8;
+  line-height: 1.6;
+  padding: 0 12px;
 }
 
 /* Scrollbar */
@@ -892,7 +895,7 @@ let isDragging = false, dragStart = {x:0,y:0};
 let hitTargets = [];
 
 // Escala visual (px por UA para el radio de órbita máx ~40UA)
-function getBaseScale() { return Math.min(W, H) * 0.44 / 42; }
+function getBaseScale() { return Math.min(W, H) * 0.52 / 42; }
 
 function resize() {
   W = canvas.width = window.innerWidth;
@@ -904,7 +907,9 @@ window.addEventListener('resize', resize);
 resize();
 
 function orbitPxRadius(ua) {
-  const logUa = Math.log(ua * 3 + 1) / Math.log(127) * 42; return logUa * getBaseScale() * scale;
+  // Escala logarítmica: separa planetas interiores sin perder los exteriores
+  const logUa = Math.log(ua + 1) / Math.log(42) * 42;
+  return logUa * getBaseScale() * scale;
 }
 
 function bodyPos(key, now) {
@@ -1058,7 +1063,6 @@ function lightenColor(hex, amt) {
 
 // ── LOOP ──
 let animFrame;
-let planetFrame;
 function startLoop() {
   function loop() {
     cx = W/2 + offsetX; cy = H/2 + offsetY;
@@ -1181,51 +1185,248 @@ function drawPlanetCanvas(key) {
   const b = BODIES[key];
   const pc = document.getElementById('planet-canvas');
   const pctx = pc.getContext('2d');
-  const W2 = 320, H2 = 320;
-  pc.width = W2; pc.height = H2;
-  const cx2 = W2/2, cy2 = H2/2;
-  const pr = key === 'sun' ? 90 : (key === 'asteroids' ? 80 : 70);
+  const S = 320;
+  pc.width = S; pc.height = S;
+  const cx2 = S/2, cy2 = S/2;
+  const pr = key === 'sun' ? 100 : key === 'asteroids' ? 85 : 80;
   let angle = 0;
 
-  function draw2() {
-    pctx.clearRect(0,0,W2,H2);
-    // Glow
-    if (b.glowColor) {
-      const g = pctx.createRadialGradient(cx2,cy2,pr,cx2,cy2,pr*2.4);
-      g.addColorStop(0, b.glowColor);
-      g.addColorStop(1,'rgba(0,0,0,0)');
-      pctx.beginPath(); pctx.arc(cx2,cy2,pr*2.4,0,Math.PI*2);
-      pctx.fillStyle=g; pctx.fill();
-    }
-    if (b.hasRings) drawSaturnRings2(pctx, cx2, cy2, pr);
-    // Cuerpo
-    const bg = pctx.createRadialGradient(cx2-pr*0.3,cy2-pr*0.3,pr*0.1,cx2,cy2,pr);
-    bg.addColorStop(0, lightenColor(b.color,60));
-    bg.addColorStop(0.5, b.color);
-    bg.addColorStop(1, darkenColor(b.color,60));
-    pctx.beginPath(); pctx.arc(cx2,cy2,pr,0,Math.PI*2);
-    pctx.fillStyle=bg; pctx.fill();
-    // Rotación visual (línea de referencia)
-    pctx.beginPath();
-    pctx.moveTo(cx2,cy2);
-    pctx.lineTo(cx2+Math.cos(angle)*pr,cy2+Math.sin(angle)*pr);
-    pctx.strokeStyle='rgba(0,0,0,0.2)';
-    pctx.lineWidth=2; pctx.stroke();
-    // Asteroides: mostrar como anillo
-    if (key==='asteroids') {
-      for (let i=0;i<60;i++) {
-        const a2 = (i/60)*Math.PI*2 + angle;
-        const r2 = 40+Math.sin(i*5)*15;
+  // Texturas por planeta
+  function drawTexture(p, a) {
+    pctx.save();
+    pctx.beginPath(); pctx.arc(cx2,cy2,pr,0,Math.PI*2); pctx.clip();
+
+    if (p === 'sun') {
+      // Sol: capas de plasma amarillo-naranja
+      for (let i=0;i<8;i++){
+        const g=pctx.createRadialGradient(cx2+Math.cos(a+i)*20,cy2+Math.sin(a+i)*20,5,cx2,cy2,pr);
+        g.addColorStop(0,'rgba(255,240,100,0.3)');
+        g.addColorStop(1,'rgba(255,140,0,0.05)');
+        pctx.fillStyle=g; pctx.fillRect(cx2-pr,cy2-pr,pr*2,pr*2);
+      }
+      // Manchas solares
+      for(let i=0;i<5;i++){
+        const sx=cx2+Math.cos(a*0.3+i*1.3)*35, sy=cy2+Math.sin(a*0.2+i*1.1)*25;
+        pctx.beginPath(); pctx.ellipse(sx,sy,8,5,a+i,0,Math.PI*2);
+        pctx.fillStyle='rgba(180,80,0,0.5)'; pctx.fill();
+      }
+    } else if (p === 'mercury') {
+      // Mercurio: superficie gris con cráteres
+      for(let i=0;i<12;i++){
+        const cx3=cx2+Math.cos(i*0.8+a*0.1)*50, cy3=cy2+Math.sin(i*0.6+a*0.1)*45;
+        const r3=4+Math.sin(i*3)*3;
+        pctx.beginPath(); pctx.arc(cx3,cy3,r3,0,Math.PI*2);
+        pctx.fillStyle='rgba(80,80,80,0.4)'; pctx.fill();
+        pctx.beginPath(); pctx.arc(cx3,cy3,r3*1.4,0,Math.PI*2);
+        pctx.strokeStyle='rgba(160,160,160,0.25)'; pctx.lineWidth=1.5; pctx.stroke();
+      }
+    } else if (p === 'venus') {
+      // Venus: bandas de nubes amarillentas
+      for(let i=-5;i<=5;i++){
+        const y3=cy2+i*14+Math.sin(a*0.5+i)*4;
+        pctx.beginPath(); pctx.rect(cx2-pr,y3-3,pr*2,6);
+        pctx.fillStyle=`rgba(255,220,100,${0.08+Math.sin(i+a)*0.04})`; pctx.fill();
+      }
+      // Remolinos
+      for(let i=0;i<3;i++){
         pctx.beginPath();
-        pctx.arc(cx2+Math.cos(a2)*r2, cy2+Math.sin(a2)*r2, 2, 0, Math.PI*2);
-        pctx.fillStyle='rgba(160,140,100,0.6)'; pctx.fill();
+        pctx.arc(cx2+Math.cos(a*0.3+i*2)*30, cy2+Math.sin(a*0.2+i*2)*20, 18, 0, Math.PI*2);
+        pctx.strokeStyle='rgba(200,160,50,0.2)'; pctx.lineWidth=3; pctx.stroke();
+      }
+    } else if (p === 'earth') {
+      // Tierra: oceanos, continentes y nubes
+      // Océano base ya pintado
+      // Continente 1 (América)
+      pctx.beginPath();
+      pctx.ellipse(cx2-20+Math.cos(a)*2, cy2, 18, 35, -0.3+a*0.01, 0, Math.PI*2);
+      pctx.fillStyle='rgba(60,160,60,0.75)'; pctx.fill();
+      // Continente 2 (Eurasia-África)
+      pctx.beginPath();
+      pctx.ellipse(cx2+22+Math.cos(a+1)*2, cy2-5, 22, 38, 0.2+a*0.01, 0, Math.PI*2);
+      pctx.fillStyle='rgba(70,150,50,0.7)'; pctx.fill();
+      // Casquete polar N
+      pctx.beginPath(); pctx.arc(cx2, cy2-pr+8, 20, 0, Math.PI*2);
+      pctx.fillStyle='rgba(220,240,255,0.8)'; pctx.fill();
+      // Casquete polar S
+      pctx.beginPath(); pctx.arc(cx2, cy2+pr-8, 16, 0, Math.PI*2);
+      pctx.fillStyle='rgba(220,240,255,0.7)'; pctx.fill();
+      // Nubes
+      for(let i=0;i<6;i++){
+        pctx.beginPath();
+        pctx.ellipse(cx2+Math.cos(a*0.4+i*1.1)*45, cy2+Math.sin(a*0.3+i*0.9)*30, 20, 8, a*0.1+i, 0, Math.PI*2);
+        pctx.fillStyle='rgba(255,255,255,0.22)'; pctx.fill();
+      }
+    } else if (p === 'moon') {
+      // Luna: gris con cráteres y mares
+      for(let i=0;i<15;i++){
+        const cx3=cx2+Math.cos(i*0.7)*45, cy3=cy2+Math.sin(i*0.5)*40;
+        pctx.beginPath(); pctx.arc(cx3,cy3,5+Math.sin(i*4)*3,0,Math.PI*2);
+        pctx.fillStyle='rgba(60,60,60,0.35)'; pctx.fill();
+      }
+      // Mare Tranquillitatis
+      pctx.beginPath(); pctx.ellipse(cx2+15,cy2-10,25,20,0.3,0,Math.PI*2);
+      pctx.fillStyle='rgba(50,50,60,0.4)'; pctx.fill();
+    } else if (p === 'mars') {
+      // Marte: superficie rojiza con cañones y casquetes
+      // Valles Marineris
+      pctx.beginPath();
+      pctx.moveTo(cx2-45, cy2+5+Math.sin(a)*2);
+      pctx.bezierCurveTo(cx2-20,cy2+15,cx2+20,cy2-5,cx2+50,cy2+8);
+      pctx.strokeStyle='rgba(100,30,10,0.6)'; pctx.lineWidth=5; pctx.stroke();
+      // Olympus Mons (volcán)
+      pctx.beginPath(); pctx.arc(cx2-25, cy2-20, 14, 0, Math.PI*2);
+      pctx.fillStyle='rgba(160,70,30,0.5)'; pctx.fill();
+      pctx.beginPath(); pctx.arc(cx2-25, cy2-20, 6, 0, Math.PI*2);
+      pctx.fillStyle='rgba(100,40,20,0.6)'; pctx.fill();
+      // Casquetes polares
+      pctx.beginPath(); pctx.arc(cx2, cy2-pr+10, 16, 0, Math.PI*2);
+      pctx.fillStyle='rgba(255,240,230,0.7)'; pctx.fill();
+      pctx.beginPath(); pctx.arc(cx2, cy2+pr-10, 10, 0, Math.PI*2);
+      pctx.fillStyle='rgba(255,240,230,0.5)'; pctx.fill();
+      // Textura polvo
+      for(let i=0;i<8;i++){
+        pctx.beginPath();
+        pctx.arc(cx2+Math.cos(i*0.9+a*0.1)*40,cy2+Math.sin(i*0.7+a*0.1)*35,8,0,Math.PI*2);
+        pctx.fillStyle='rgba(120,50,20,0.2)'; pctx.fill();
+      }
+    } else if (p === 'jupiter') {
+      // Júpiter: bandas horizontales características
+      const bands=[
+        {y:-60,h:12,c:'rgba(200,150,100,0.5)'},
+        {y:-45,h:18,c:'rgba(160,100,60,0.45)'},
+        {y:-25,h:14,c:'rgba(220,180,130,0.4)'},
+        {y:-10,h:20,c:'rgba(180,120,70,0.5)'},
+        {y:12,h:16,c:'rgba(210,160,100,0.45)'},
+        {y:30,h:12,c:'rgba(150,90,50,0.4)'},
+        {y:44,h:18,c:'rgba(200,150,100,0.45)'},
+      ];
+      bands.forEach(bd=>{
+        pctx.beginPath();
+        pctx.rect(cx2-pr, cy2+bd.y, pr*2, bd.h);
+        pctx.fillStyle=bd.c; pctx.fill();
+      });
+      // Gran Mancha Roja
+      const gx=cx2+Math.cos(a*0.05)*10, gy=cy2+8;
+      pctx.beginPath(); pctx.ellipse(gx,gy,22,14,0,0,Math.PI*2);
+      pctx.fillStyle='rgba(180,60,30,0.65)'; pctx.fill();
+      pctx.beginPath(); pctx.ellipse(gx,gy,14,8,0,0,Math.PI*2);
+      pctx.fillStyle='rgba(220,80,40,0.5)'; pctx.fill();
+    } else if (p === 'saturn') {
+      // Saturno: bandas suaves doradas
+      const bands2=[
+        {y:-50,h:15,c:'rgba(220,200,140,0.4)'},
+        {y:-33,h:12,c:'rgba(180,150,90,0.4)'},
+        {y:-20,h:20,c:'rgba(230,210,150,0.35)'},
+        {y:2,h:16,c:'rgba(190,160,100,0.4)'},
+        {y:20,h:14,c:'rgba(215,195,135,0.35)'},
+        {y:36,h:16,c:'rgba(175,145,85,0.4)'},
+      ];
+      bands2.forEach(bd=>{
+        pctx.beginPath(); pctx.rect(cx2-pr,cy2+bd.y,pr*2,bd.h);
+        pctx.fillStyle=bd.c; pctx.fill();
+      });
+    } else if (p === 'uranus') {
+      // Urano: gradiente cian uniforme con bandas tenues
+      for(let i=-4;i<=4;i++){
+        pctx.beginPath(); pctx.rect(cx2-pr,cy2+i*16,pr*2,8);
+        pctx.fillStyle=`rgba(100,220,220,${0.06+Math.abs(Math.sin(i+a))*0.04})`; pctx.fill();
+      }
+      // Eje inclinado (característica de Urano)
+      pctx.beginPath();
+      pctx.moveTo(cx2-pr*0.7, cy2-pr*0.7);
+      pctx.lineTo(cx2+pr*0.7, cy2+pr*0.7);
+      pctx.strokeStyle='rgba(150,240,240,0.15)'; pctx.lineWidth=3; pctx.stroke();
+    } else if (p === 'neptune') {
+      // Neptuno: bandas azul profundo con Gran Mancha Oscura
+      for(let i=-4;i<=4;i++){
+        pctx.beginPath(); pctx.rect(cx2-pr,cy2+i*16,pr*2,10);
+        pctx.fillStyle=`rgba(40,60,200,${0.15+Math.sin(i*0.8+a)*0.07})`; pctx.fill();
+      }
+      // Gran Mancha Oscura
+      pctx.beginPath(); pctx.ellipse(cx2-15+Math.cos(a*0.08)*8, cy2-15, 20, 12, 0.3, 0, Math.PI*2);
+      pctx.fillStyle='rgba(10,20,120,0.6)'; pctx.fill();
+    } else if (p === 'pluto') {
+      // Plutón: región Tombaugh (corazón)
+      pctx.beginPath();
+      pctx.arc(cx2+10, cy2+5, 25, 0, Math.PI*2);
+      pctx.fillStyle='rgba(220,200,160,0.4)'; pctx.fill();
+      // Textura cratérica
+      for(let i=0;i<8;i++){
+        pctx.beginPath(); pctx.arc(cx2+Math.cos(i*0.9)*35,cy2+Math.sin(i*0.7)*32,4,0,Math.PI*2);
+        pctx.fillStyle='rgba(80,60,40,0.4)'; pctx.fill();
+      }
+    } else if (p === 'halley' || p === 'hale_bopp' || p === 'churyumov') {
+      // Cometas: núcleo irregular oscuro
+      for(let i=0;i<6;i++){
+        pctx.beginPath();
+        pctx.arc(cx2+Math.cos(i*1.1)*15, cy2+Math.sin(i*0.9)*12, 12, 0, Math.PI*2);
+        pctx.fillStyle='rgba(40,30,20,0.5)'; pctx.fill();
+      }
+      // Cráteres de sublimación
+      for(let i=0;i<8;i++){
+        pctx.beginPath(); pctx.arc(cx2+Math.cos(i*0.8+a)*30,cy2+Math.sin(i*0.7+a)*25,3,0,Math.PI*2);
+        pctx.fillStyle='rgba(180,160,120,0.3)'; pctx.fill();
       }
     }
-    angle += 0.008;
+    pctx.restore();
+  }
+
+  function draw2() {
+    pctx.clearRect(0,0,S,S);
+
+    // Glow exterior
+    const g = pctx.createRadialGradient(cx2,cy2,pr*0.8,cx2,cy2,pr*2.2);
+    g.addColorStop(0, b.glowColor || 'rgba(100,100,200,0.3)');
+    g.addColorStop(1,'rgba(0,0,0,0)');
+    pctx.beginPath(); pctx.arc(cx2,cy2,pr*2.2,0,Math.PI*2);
+    pctx.fillStyle=g; pctx.fill();
+
+    // Anillos Saturno DETRÁS
+    if (b.hasRings) {
+      for(let i=1.5;i<=2.6;i+=0.16){
+        pctx.beginPath();
+        pctx.ellipse(cx2,cy2,pr*i,pr*i*0.28,0,0,Math.PI*2);
+        pctx.strokeStyle=`rgba(200,175,110,${0.4-(i-1.5)*0.15})`;
+        pctx.lineWidth=pr*0.22; pctx.stroke();
+      }
+    }
+
+    // Base del planeta
+    const base = pctx.createRadialGradient(cx2-pr*0.25,cy2-pr*0.25,pr*0.05,cx2,cy2,pr);
+    base.addColorStop(0, b.color);
+    base.addColorStop(1, darkenColor(b.color, 55));
+    pctx.beginPath(); pctx.arc(cx2,cy2,pr,0,Math.PI*2);
+    pctx.fillStyle=base; pctx.fill();
+
+    // Textura específica del planeta
+    drawTexture(key, angle);
+
+    // Sombra lateral (terminator)
+    const shadow = pctx.createRadialGradient(cx2+pr*0.55,cy2,0,cx2+pr*0.3,cy2,pr*1.05);
+    shadow.addColorStop(0,'rgba(0,0,0,0)');
+    shadow.addColorStop(0.6,'rgba(0,0,0,0.1)');
+    shadow.addColorStop(1,'rgba(0,0,0,0.55)');
+    pctx.beginPath(); pctx.arc(cx2,cy2,pr,0,Math.PI*2);
+    pctx.fillStyle=shadow; pctx.fill();
+
+    // Asteroides: anillo
+    if (key==='asteroids') {
+      pctx.clearRect(0,0,S,S);
+      for(let i=0;i<80;i++){
+        const a2=(i/80)*Math.PI*2+angle;
+        const r2=50+Math.sin(i*5)*22;
+        pctx.beginPath();
+        pctx.arc(cx2+Math.cos(a2)*r2,cy2+Math.sin(a2)*r2,1.5+Math.sin(i*3)*1,0,Math.PI*2);
+        pctx.fillStyle=`rgba(180,160,110,${0.4+Math.sin(i*7)*0.3})`; pctx.fill();
+      }
+    }
+
+    angle += 0.006;
     planetFrame = requestAnimationFrame(draw2);
   }
   draw2();
 }
+
 
 function drawSaturnRings2(ctx2, x, y, pr) {
   for (let i=1.5;i<=2.5;i+=0.18) {
