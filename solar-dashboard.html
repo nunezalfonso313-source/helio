@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>EnglishAI — Personal Instructor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet"/>
+<style>
+/* ── RESET ─────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px;scroll-behavior:smooth}
+
+/* ── VARIABLES ─────────────────────────────────────── */
+:root{
+  --bg:#080a0f;
+  --s1:#10131a;
+  --s2:#181d28;
+  --border:#252b3b;
+  --accent:#00e5a0;
+  --blue:#5b8cff;
+  --orange:#ff9f43;
+  --red:#ff6b6b;
+  --purple:#c084fc;
+  --text:#dde1f0;
+  --muted:#5e6480;
+  --r:12px;
+  --basic:#ffb347;
+  --inter:#5b8cff;
+  --adv:#c084fc;
+}
+
+/* ── BASE ──────────────────────────────────────────── */
+body{
+  font-family:'JetBrains Mono',monospace;
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+}
+
+/* grain */
+body::after{
+  content:'';position:fixed;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='.03'/%3E%3C/svg%3E");
+  pointer-events:none;z-index:0;
+}
+
+/* ── APP WRAPPER ───────────────────────────────────── */
+#app{
+  position:relative;z-index:1;
+  max-width:880px;
+  width:100%;
+  margin:0 auto;
+  padding:20px 16px 60px;
+  flex:1;
+}
+
+/* ── HEADER ────────────────────────────────────────── */
+header{
+  text-align:center;
+  padding:36px 0 28px;
+}
+.logo{
+  font-family:'Syne',sans-serif;
+  font-size:clamp(1.8rem,5vw,2.8rem);
+  font-weight:800;
+  letter-spacing:-1.5px;
+  line-height:1;
+}
+.logo em{color:var(--accent);font-style:normal}
+.tagline{
+  font-size:.7rem;
+  color:var(--muted);
+  letter-spacing:3px;
+  text-transform:uppercase;
+  margin-top:8px;
+}
+.glow{
+  width:48px;height:2px;
+  background:var(--accent);
+  box-shadow:0 0 14px var(--accent);
+  border-radius:2px;
+  margin:14px auto 0;
+}
+
+/* ── BREADCRUMB ────────────────────────────────────── */
+#breadcrumb{
+  display:flex;align-items:center;gap:8px;
+  font-size:.68rem;color:var(--muted);
+  margin-bottom:24px;
+  min-height:22px;
+}
+#breadcrumb span{color:var(--text)}
+#breadcrumb .sep{color:var(--border)}
+
+/* ── STEP ──────────────────────────────────────────── */
+.step{display:none}
+.step.active{display:block;animation:up .3s ease}
+@keyframes up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+
+.step-label{
+  font-family:'Syne',sans-serif;
+  font-size:.72rem;
+  font-weight:700;
+  letter-spacing:3px;
+  text-transform:uppercase;
+  color:var(--muted);
+  margin-bottom:18px;
+}
+
+/* ── CARDS ─────────────────────────────────────────── */
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+  gap:12px;
+}
+
+.card{
+  background:var(--s1);
+  border:1.5px solid var(--border);
+  border-radius:var(--r);
+  padding:22px 18px;
+  cursor:pointer;
+  transition:border-color .2s,transform .2s,box-shadow .2s;
+  position:relative;overflow:hidden;
+  user-select:none;
+}
+.card::before{
+  content:'';position:absolute;inset:0;
+  background:var(--c,var(--accent));
+  opacity:0;transition:opacity .25s;
+}
+.card:hover{transform:translateY(-3px)}
+.card:hover,.card.sel{
+  border-color:var(--c,var(--accent));
+  box-shadow:0 0 0 1px var(--c,var(--accent)),0 8px 28px -6px color-mix(in srgb,var(--c,var(--accent)) 40%,transparent);
+}
+.card.sel::before{opacity:.07}
+
+/* card vars */
+[data-l="basic"]        {--c:var(--basic)}
+[data-l="intermediate"] {--c:var(--inter)}
+[data-l="advanced"]     {--c:var(--adv)}
+[data-m="vocabulary"]   {--c:var(--accent)}
+[data-m="grammar"]      {--c:var(--blue)}
+[data-m="conversation"] {--c:var(--orange)}
+[data-m="quiz"]         {--c:var(--red)}
+
+.card-ico{font-size:1.8rem;line-height:1;margin-bottom:10px;position:relative}
+.card-title{
+  font-family:'Syne',sans-serif;
+  font-weight:700;font-size:1rem;
+  color:var(--c,var(--text));
+  margin-bottom:5px;position:relative;
+}
+.card-sub{font-size:.68rem;color:var(--muted);line-height:1.6;position:relative}
+
+.badge{
+  display:inline-block;
+  font-size:.58rem;font-weight:700;
+  letter-spacing:1.5px;text-transform:uppercase;
+  padding:2px 8px;border-radius:99px;
+  border:1px solid var(--c,var(--accent));
+  color:var(--c,var(--accent));
+  margin-bottom:8px;position:relative;
+}
+
+/* ── BUTTONS ───────────────────────────────────────── */
+.btn-row{display:flex;gap:10px;margin-top:24px;flex-wrap:wrap}
+
+.btn{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:11px 24px;border-radius:9px;border:none;
+  cursor:pointer;
+  font-family:'Syne',sans-serif;font-weight:700;
+  font-size:.85rem;letter-spacing:.4px;
+  transition:all .18s;
+}
+.btn-primary{background:var(--accent);color:#000}
+.btn-primary:hover{filter:brightness(1.1);transform:translateY(-1px)}
+.btn-primary:disabled{opacity:.35;cursor:not-allowed;transform:none}
+.btn-ghost{
+  background:transparent;color:var(--muted);
+  border:1.5px solid var(--border);
+}
+.btn-ghost:hover{border-color:var(--text);color:var(--text)}
+
+/* ── CHAT ──────────────────────────────────────────── */
+#chat-step{display:none}
+#chat-step.active{display:flex;flex-direction:column;gap:16px;animation:up .3s ease}
+
+/* info bar */
+#chat-info{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+}
+#chat-info .pill{
+  font-size:.65rem;font-weight:700;
+  letter-spacing:1.5px;text-transform:uppercase;
+  padding:4px 12px;border-radius:99px;
+  border:1px solid var(--c2,var(--accent));
+  color:var(--c2,var(--accent));
+}
+#btn-restart{
+  margin-left:auto;
+  font-size:.68rem;
+  padding:5px 14px;
+}
+
+/* messages */
+#messages{
+  background:var(--s1);
+  border:1.5px solid var(--border);
+  border-radius:var(--r);
+  padding:20px;
+  min-height:320px;
+  max-height:52vh;
+  overflow-y:auto;
+  display:flex;flex-direction:column;gap:16px;
+  scroll-behavior:smooth;
+}
+
+.msg{
+  display:flex;gap:12px;
+  animation:up .25s ease;
+}
+.msg.user{flex-direction:row-reverse}
+
+.avatar{
+  width:34px;height:34px;min-width:34px;
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.9rem;
+  font-weight:700;
+}
+.msg.ai .avatar{background:color-mix(in srgb,var(--accent) 15%,var(--s2));color:var(--accent)}
+.msg.user .avatar{background:color-mix(in srgb,var(--blue) 15%,var(--s2));color:var(--blue)}
+
+.bubble{
+  max-width:78%;
+  padding:12px 16px;
+  border-radius:12px;
+  font-size:.8rem;
+  line-height:1.75;
+  white-space:pre-wrap;
+  word-break:break-word;
+}
+.msg.ai .bubble{
+  background:var(--s2);
+  border:1px solid var(--border);
+  border-top-left-radius:4px;
+}
+.msg.user .bubble{
+  background:color-mix(in srgb,var(--blue) 18%,var(--s2));
+  border:1px solid color-mix(in srgb,var(--blue) 30%,transparent);
+  border-top-right-radius:4px;
+  text-align:right;
+}
+
+/* typing */
+.typing .bubble{background:var(--s2);border:1px solid var(--border)}
+.dots{display:inline-flex;gap:4px}
+.dots span{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--muted);
+  animation:bounce .9s infinite;
+}
+.dots span:nth-child(2){animation-delay:.2s}
+.dots span:nth-child(3){animation-delay:.4s}
+@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
+
+/* input area */
+#input-area{
+  display:flex;gap:10px;
+  background:var(--s1);
+  border:1.5px solid var(--border);
+  border-radius:var(--r);
+  padding:10px 12px;
+  transition:border-color .2s;
+}
+#input-area:focus-within{border-color:var(--accent)}
+
+#user-input{
+  flex:1;background:transparent;border:none;outline:none;
+  font-family:'JetBrains Mono',monospace;
+  font-size:.82rem;color:var(--text);
+  resize:none;min-height:42px;max-height:160px;
+  line-height:1.6;
+  padding:4px 0;
+}
+#user-input::placeholder{color:var(--muted)}
+
+#send-btn{
+  align-self:flex-end;
+  padding:10px 16px;
+  background:var(--accent);
+  border:none;border-radius:8px;
+  cursor:pointer;
+  font-size:1.1rem;
+  transition:all .18s;
+  min-width:44px;
+}
+#send-btn:hover{filter:brightness(1.15);transform:scale(1.05)}
+#send-btn:disabled{opacity:.35;cursor:not-allowed;transform:none}
+
+.hint{font-size:.62rem;color:var(--muted);text-align:right;margin-top:4px}
+
+/* ── SCROLLBAR ─────────────────────────────────────── */
+#messages::-webkit-scrollbar{width:4px}
+#messages::-webkit-scrollbar-track{background:transparent}
+#messages::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+
+/* ── RESPONSIVE ────────────────────────────────────── */
+@media(max-width:500px){
+  .grid{grid-template-columns:1fr 1fr}
+  .bubble{max-width:88%}
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- HEADER -->
+  <header>
+    <div class="logo">English<em>AI</em></div>
+    <div class="tagline">Your personal English instructor</div>
+    <div class="glow"></div>
+  </header>
+
+  <!-- BREADCRUMB -->
+  <div id="breadcrumb"></div>
+
+  <!-- STEP 1: Nivel -->
+  <section class="step active" id="step-level">
+    <div class="step-label">Step 01 — Choose your level</div>
+    <div class="grid">
+
+      <div class="card" data-l="basic" onclick="selectLevel('basic')">
+        <div class="card-ico">🌱</div>
+        <div class="badge">A1 – A2</div>
+        <div class="card-title">Basic</div>
+        <div class="card-sub">Just starting out. Simple words, translations included, friendly pace.</div>
+      </div>
+
+      <div class="card" data-l="intermediate" onclick="selectLevel('intermediate')">
+        <div class="card-ico">⚡</div>
+        <div class="badge">B1 – B2</div>
+        <div class="card-title">Intermediate</div>
+        <div class="card-sub">You know the basics. Time to build fluency and fix bad habits.</div>
+      </div>
+
+      <div class="card" data-l="advanced" onclick="selectLevel('advanced')">
+        <div class="card-ico">🔥</div>
+        <div class="badge">C1 – C2</div>
+        <div class="card-title">Advanced</div>
+        <div class="card-sub">Near-native level. Nuance, idioms, and style — all in English.</div>
+      </div>
+
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="btn-to-module" disabled onclick="goToModule()">
+        Choose Module →
+      </button>
+    </div>
+  </section>
+
+  <!-- STEP 2: Módulo -->
+  <section class="step" id="step-module">
+    <div class="step-label">Step 02 — Choose a module</div>
+    <div class="grid">
+
+      <div class="card" data-m="vocabulary" onclick="selectModule('vocabulary')">
+        <div class="card-ico">📖</div>
+        <div class="card-title">Vocabulary</div>
+        <div class="card-sub">Learn new words and phrases with examples and context.</div>
+      </div>
+
+      <div class="card" data-m="grammar" onclick="selectModule('grammar')">
+        <div class="card-ico">✏️</div>
+        <div class="card-title">Grammar</div>
+        <div class="card-sub">Rules, examples, and exercises. Fix your grammar for good.</div>
+      </div>
+
+      <div class="card" data-m="conversation" onclick="selectModule('conversation')">
+        <div class="card-ico">💬</div>
+        <div class="card-title">Conversation</div>
+        <div class="card-sub">Free practice with real-time corrections. Talk about anything.</div>
+      </div>
+
+      <div class="card" data-m="quiz" onclick="selectModule('quiz')">
+        <div class="card-ico">🎯</div>
+        <div class="card-title">Quiz</div>
+        <div class="card-sub">Test yourself. Get scored and see where you need work.</div>
+      </div>
+
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="goBack('step-level','step-module')">← Back</button>
+      <button class="btn btn-primary" id="btn-start" disabled onclick="startChat()">
+        Start Session →
+      </button>
+    </div>
+  </section>
+
+  <!-- STEP 3: Chat -->
+  <section class="step" id="chat-step">
+
+    <div id="chat-info">
+      <div class="pill" id="pill-level"></div>
+      <div class="pill" id="pill-module" style="--c2:var(--blue)"></div>
+      <button class="btn btn-ghost" id="btn-restart" onclick="restart()">↺ Restart</button>
+    </div>
+
+    <div id="messages"></div>
+
+    <div>
+      <div id="input-area">
+        <textarea
+          id="user-input"
+          placeholder="Type your message… (Enter to send, Shift+Enter for new line)"
+          rows="2"
+        ></textarea>
+        <button id="send-btn" onclick="sendMessage()" title="Send">➤</button>
+      </div>
+      <div class="hint">Enter ↵ to send</div>
+    </div>
+
+  </section>
+
+</div><!-- /app -->
+
+<script>
+// ── STATE ──────────────────────────────────────────────────────
+const state = {
+  level: null,
+  module: null,
+  messages: [],   // historial para la API
+};
+
+// ── LEVEL → COLORES ────────────────────────────────────────────
+const LEVEL_COLOR = {basic:'var(--basic)',intermediate:'var(--inter)',advanced:'var(--adv)'};
+const MODULE_COLOR = {vocabulary:'var(--accent)',grammar:'var(--blue)',conversation:'var(--orange)',quiz:'var(--red)'};
+const MODULE_LABEL = {vocabulary:'📖 Vocabulary',grammar:'✏️ Grammar',conversation:'💬 Conversation',quiz:'🎯 Quiz'};
+const LEVEL_LABEL  = {basic:'🌱 Basic',intermediate:'⚡ Intermediate',advanced:'🔥 Advanced'};
+
+// ── WORKER URL — vacío = misma origin ─────────────────────────
+// Cloudflare Pages sirve el _worker.js en la misma origin
+const WORKER_URL = '/chat';
+
+// ── NAV ────────────────────────────────────────────────────────
+function showStep(id){
+  document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function updateBreadcrumb(){
+  const bc = document.getElementById('breadcrumb');
+  const parts = [];
+  if(state.level)  parts.push(`<span>${LEVEL_LABEL[state.level]}</span>`);
+  if(state.module) parts.push(`<span>${MODULE_LABEL[state.module]}</span>`);
+  bc.innerHTML = parts.join('<span class="sep"> / </span>');
+}
+
+// ── STEP 1: seleccionar nivel ──────────────────────────────────
+function selectLevel(lvl){
+  state.level = lvl;
+  document.querySelectorAll('[data-l]').forEach(c=>c.classList.remove('sel'));
+  document.querySelector(`[data-l="${lvl}"]`).classList.add('sel');
+  document.getElementById('btn-to-module').disabled = false;
+  updateBreadcrumb();
+}
+
+function goToModule(){
+  showStep('step-module');
+  updateBreadcrumb();
+}
+
+// ── STEP 2: seleccionar módulo ─────────────────────────────────
+function selectModule(mod){
+  state.module = mod;
+  document.querySelectorAll('[data-m]').forEach(c=>c.classList.remove('sel'));
+  document.querySelector(`[data-m="${mod}"]`).classList.add('sel');
+  document.getElementById('btn-start').disabled = false;
+  updateBreadcrumb();
+}
+
+function goBack(show, hide){
+  document.getElementById(hide).classList.remove('active');
+  showStep(show);
+  state.module = null;
+  document.getElementById('btn-start').disabled = true;
+  document.querySelectorAll('[data-m]').forEach(c=>c.classList.remove('sel'));
+  updateBreadcrumb();
+}
+
+// ── STEP 3: iniciar chat ───────────────────────────────────────
+function startChat(){
+  state.messages = [];
+
+  // pills
+  const pl = document.getElementById('pill-level');
+  pl.textContent = LEVEL_LABEL[state.level];
+  pl.style.setProperty('--c2', LEVEL_COLOR[state.level]);
+
+  const pm = document.getElementById('pill-module');
+  pm.textContent = MODULE_LABEL[state.module];
+  pm.style.setProperty('--c2', MODULE_COLOR[state.module]);
+
+  document.getElementById('messages').innerHTML = '';
+  showStep('chat-step');
+  updateBreadcrumb();
+
+  // mensaje de bienvenida del AI
+  const welcome = {
+    basic:        "Hello! 👋 I'm your English instructor. Let's start! Tell me: what topic do you want to learn today? (¿Qué tema quieres aprender hoy?)",
+    intermediate: "Hey! Ready to level up your English? What topic or question do you want to work on today?",
+    advanced:     "Welcome. I'll be your English instructor today. What aspect of the language do you want to tackle — grammar, vocabulary, writing style, or something else?",
+  };
+
+  const modWelcome = {
+    vocabulary:   " I'll teach you new words and phrases.",
+    grammar:      " We'll cover grammar rules with exercises.",
+    conversation: " We'll have a real conversation — I'll correct you as we go.",
+    quiz:         " I'll quiz you and score your answers.",
+  };
+
+  const msg = welcome[state.level] + modWelcome[state.module];
+  addMessage('ai', msg);
+}
+
+// ── MENSAJES ───────────────────────────────────────────────────
+function addMessage(role, text){
+  const wrap = document.getElementById('messages');
+  const div  = document.createElement('div');
+  div.className = `msg ${role}`;
+
+  const avatar = document.createElement('div');
+  avatar.className = 'avatar';
+  avatar.textContent = role === 'ai' ? '🤖' : '👤';
+
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
+  bubble.textContent = text;
+
+  div.appendChild(avatar);
+  div.appendChild(bubble);
+  wrap.appendChild(div);
+  wrap.scrollTop = wrap.scrollHeight;
+}
+
+function addTyping(){
+  const wrap = document.getElementById('messages');
+  const div  = document.createElement('div');
+  div.className = 'msg ai typing';
+  div.id = 'typing-indicator';
+  div.innerHTML = `
+    <div class="avatar">🤖</div>
+    <div class="bubble"><div class="dots"><span></span><span></span><span></span></div></div>
+  `;
+  wrap.appendChild(div);
+  wrap.scrollTop = wrap.scrollHeight;
+}
+
+function removeTyping(){
+  const t = document.getElementById('typing-indicator');
+  if(t) t.remove();
+}
+
+// ── ENVIAR MENSAJE ─────────────────────────────────────────────
+async function sendMessage(){
+  const input  = document.getElementById('user-input');
+  const sendBtn = document.getElementById('send-btn');
+  const text   = input.value.trim();
+  if(!text) return;
+
+  addMessage('user', text);
+  input.value = '';
+  input.style.height = 'auto';
+  sendBtn.disabled = true;
+
+  addTyping();
+
+  try {
+    const res = await fetch(WORKER_URL, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        level:       state.level,
+        module:      state.module,
+        userMessage: text,
+        messages:    state.messages,
+      }),
+    });
+
+    const data = await res.json();
+    removeTyping();
+
+    if(data.error){
+      addMessage('ai', `⚠️ Error: ${data.error}`);
+    } else {
+      addMessage('ai', data.reply);
+      state.messages = data.updatedMessages;
+    }
+
+  } catch(e){
+    removeTyping();
+    addMessage('ai', `⚠️ Network error: ${e.message}`);
+  }
+
+  sendBtn.disabled = false;
+  input.focus();
+}
+
+// ── RESTART ────────────────────────────────────────────────────
+function restart(){
+  state.level  = null;
+  state.module = null;
+  state.messages = [];
+  document.querySelectorAll('.card').forEach(c=>c.classList.remove('sel'));
+  document.getElementById('btn-to-module').disabled = true;
+  document.getElementById('btn-start').disabled = true;
+  document.getElementById('breadcrumb').innerHTML = '';
+  showStep('step-level');
+}
+
+// ── ENTER para enviar ──────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', ()=>{
+  const input = document.getElementById('user-input');
+  input.addEventListener('keydown', e=>{
+    if(e.key === 'Enter' && !e.shiftKey){
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+  // auto-resize
+  input.addEventListener('input', ()=>{
+    input.style.height = 'auto';
+    input.style.height = Math.min(input.scrollHeight, 160) + 'px';
+  });
+});
+</script>
+</body>
+</html>
