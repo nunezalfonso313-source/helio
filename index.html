@@ -1,0 +1,111 @@
+<script>
+// 1. Reemplaza con la URL que te dio Cloudflare
+const WORKER_URL = 'https://metro-proxy.nunezalfonso313.workers.dev'; 
+
+let currentTopic = 'general', isLoading = false;
+
+const TOPICS = {
+  general: 'Eres un instructor técnico especializado en GD&T (ASME Y14.5), metrología CMM y trigonometría aplicada a manufactura. Responde en español de forma técnica y precisa.',
+  gdt: 'Eres un experto en GD&T según ASME Y14.5. Explica símbolos, tolerancias geométricas, datum, MMC, LMC. Responde en español.',
+  cmm: 'Eres programador experto de CMM. Explica medición, programación, calificación de puntas. Responde en español.',
+  trig: 'Eres instructor de trigonometría aplicada a manufactura. Explica leyes de senos y cosenos, ángulos, coordenadas. Responde en español.',
+  tolerancias: 'Eres experto en tolerancias dimensionales según ISO y ASME. Responde en español.',
+  calidad: 'Eres experto en PPAP, APQP, FMEA, MSA e IATF 16949. Responde en español.',
+};
+
+function setTopic(btn, topic) {
+  document.querySelectorAll('.topic-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentTopic = topic;
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMsg();
+  }
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+function addMsg(role, text) {
+  const area = document.getElementById('chat-area');
+  const div = document.createElement('div');
+  div.className = 'msg ' + role;
+  div.innerHTML = `<div class="msg-avatar">${role === 'bot' ? '⚙' : ' 👤'}</div><div class="msg-content"><div class="msg-label">${role === 'bot' ? 'CMM ASSISTANT' : 'OPERADOR'}</div><div class="msg-bubble">${text.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>')}</div></div>`;
+  area.appendChild(div);
+  area.scrollTop = area.scrollHeight;
+}
+
+function showTyping() {
+  const area = document.getElementById('chat-area');
+  const div = document.createElement('div');
+  div.className = 'msg bot';
+  div.id = 'typing';
+  div.innerHTML = '<div class="msg-avatar">⚙</div><div class="msg-content"><div class="msg-label">CMM ASSISTANT</div><div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div>';
+  area.appendChild(div);
+  area.scrollTop = area.scrollHeight;
+}
+
+function hideTyping() {
+  const t = document.getElementById('typing');
+  if (t) t.remove();
+}
+
+async function sendMsg() {
+  const input = document.getElementById('msg-input');
+  const text = input.value.trim();
+  if (!text || isLoading) return;
+  input.value = '';
+  input.style.height = 'auto';
+  sendQuick(text);
+}
+
+async function sendQuick(text) {
+  if (isLoading) return;
+  isLoading = true;
+  document.getElementById('send-btn').disabled = true;
+  addMsg('user', text);
+  showTyping();
+
+  try {
+    // 2. Llamada directa a tu Worker de Cloudflare
+    const r = await fetch(WORKER_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        messages: [
+          { role: 'system', content: TOPICS[currentTopic] },
+          { role: 'user', content: text }
+        ],
+        temperature: 0.0
+      })
+    });
+
+    const data = await r.json();
+    hideTyping();
+    
+    if (data.choices && data.choices[0]) {
+      addMsg('bot', data.choices[0].message.content);
+    } else {
+      throw new Error("Respuesta inesperada de la API");
+    }
+
+  } catch (e) {
+    hideTyping();
+    addMsg('bot', 'Error de sistema: No se pudo conectar con el servidor proxy.');
+    console.error(e);
+  }
+
+  isLoading = false;
+  document.getElementById('send-btn').disabled = false;
+}
+
+window.sendQuick = sendQuick;
+window.setTopic = setTopic;
+</script>
+
