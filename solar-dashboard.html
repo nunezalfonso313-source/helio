@@ -1,644 +1,1302 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>EnglishAI — Personal Instructor</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HELIO — Sistema Solar</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
-/* ── RESET ─────────────────────────────────────────── */
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{font-size:16px;scroll-behavior:smooth}
-
-/* ── VARIABLES ─────────────────────────────────────── */
-:root{
-  --bg:#080a0f;
-  --s1:#10131a;
-  --s2:#181d28;
-  --border:#252b3b;
-  --accent:#00e5a0;
-  --blue:#5b8cff;
-  --orange:#ff9f43;
-  --red:#ff6b6b;
-  --purple:#c084fc;
-  --text:#dde1f0;
-  --muted:#5e6480;
-  --r:12px;
-  --basic:#ffb347;
-  --inter:#5b8cff;
-  --adv:#c084fc;
+:root {
+  --void: #02040e;
+  --deep: #060a18;
+  --panel: #0a0f22;
+  --border: #162040;
+  --text: #b8cce8;
+  --dim: #3a4a6a;
+  --cyan: #00d4ff;
+  --blue: #1e6fff;
+  --accent: #ff6b35;
+  --gold: #f5c518;
+  --green: #00ff9d;
 }
 
-/* ── BASE ──────────────────────────────────────────── */
-body{
-  font-family:'JetBrains Mono',monospace;
-  background:var(--bg);
-  color:var(--text);
-  min-height:100vh;
-  display:flex;
-  flex-direction:column;
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: var(--void);
+  color: var(--text);
+  font-family: 'Share Tech Mono', monospace;
+  height: 100vh;
+  overflow: hidden;
+  cursor: crosshair;
 }
 
-/* grain */
-body::after{
-  content:'';position:fixed;inset:0;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='.03'/%3E%3C/svg%3E");
-  pointer-events:none;z-index:0;
+/* ── ESTRELLAS FONDO ── */
+#stars {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
 }
 
-/* ── APP WRAPPER ───────────────────────────────────── */
-#app{
-  position:relative;z-index:1;
-  max-width:880px;
-  width:100%;
-  margin:0 auto;
-  padding:20px 16px 60px;
-  flex:1;
+/* ── HEADER ── */
+#header {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 56px;
+  background: linear-gradient(180deg, rgba(6,10,24,0.98) 0%, rgba(6,10,24,0.0) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  z-index: 100;
 }
 
-/* ── HEADER ────────────────────────────────────────── */
-header{
-  text-align:center;
-  padding:36px 0 28px;
-}
-.logo{
-  font-family:'Syne',sans-serif;
-  font-size:clamp(1.8rem,5vw,2.8rem);
-  font-weight:800;
-  letter-spacing:-1.5px;
-  line-height:1;
-}
-.logo em{color:var(--accent);font-style:normal}
-.tagline{
-  font-size:.7rem;
-  color:var(--muted);
-  letter-spacing:3px;
-  text-transform:uppercase;
-  margin-top:8px;
-}
-.glow{
-  width:48px;height:2px;
-  background:var(--accent);
-  box-shadow:0 0 14px var(--accent);
-  border-radius:2px;
-  margin:14px auto 0;
+#logo {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 900;
+  font-size: 1.4rem;
+  letter-spacing: 0.3em;
+  color: var(--cyan);
+  text-shadow: 0 0 20px rgba(0,212,255,0.6);
 }
 
-/* ── BREADCRUMB ────────────────────────────────────── */
-#breadcrumb{
-  display:flex;align-items:center;gap:8px;
-  font-size:.68rem;color:var(--muted);
-  margin-bottom:24px;
-  min-height:22px;
-}
-#breadcrumb span{color:var(--text)}
-#breadcrumb .sep{color:var(--border)}
-
-/* ── STEP ──────────────────────────────────────────── */
-.step{display:none}
-.step.active{display:block;animation:up .3s ease}
-@keyframes up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
-
-.step-label{
-  font-family:'Syne',sans-serif;
-  font-size:.72rem;
-  font-weight:700;
-  letter-spacing:3px;
-  text-transform:uppercase;
-  color:var(--muted);
-  margin-bottom:18px;
+#logo span {
+  color: var(--dim);
+  font-size: 0.6rem;
+  letter-spacing: 0.15em;
+  display: block;
+  font-weight: 400;
+  margin-top: -4px;
 }
 
-/* ── CARDS ─────────────────────────────────────────── */
-.grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
-  gap:12px;
+#clock {
+  font-size: 0.7rem;
+  color: var(--dim);
+  letter-spacing: 0.1em;
+  text-align: right;
 }
 
-.card{
-  background:var(--s1);
-  border:1.5px solid var(--border);
-  border-radius:var(--r);
-  padding:22px 18px;
-  cursor:pointer;
-  transition:border-color .2s,transform .2s,box-shadow .2s;
-  position:relative;overflow:hidden;
-  user-select:none;
-}
-.card::before{
-  content:'';position:absolute;inset:0;
-  background:var(--c,var(--accent));
-  opacity:0;transition:opacity .25s;
-}
-.card:hover{transform:translateY(-3px)}
-.card:hover,.card.sel{
-  border-color:var(--c,var(--accent));
-  box-shadow:0 0 0 1px var(--c,var(--accent)),0 8px 28px -6px color-mix(in srgb,var(--c,var(--accent)) 40%,transparent);
-}
-.card.sel::before{opacity:.07}
+#clock .date { color: var(--text); font-size: 0.8rem; }
 
-/* card vars */
-[data-l="basic"]        {--c:var(--basic)}
-[data-l="intermediate"] {--c:var(--inter)}
-[data-l="advanced"]     {--c:var(--adv)}
-[data-m="vocabulary"]   {--c:var(--accent)}
-[data-m="grammar"]      {--c:var(--blue)}
-[data-m="conversation"] {--c:var(--orange)}
-[data-m="quiz"]         {--c:var(--red)}
-
-.card-ico{font-size:1.8rem;line-height:1;margin-bottom:10px;position:relative}
-.card-title{
-  font-family:'Syne',sans-serif;
-  font-weight:700;font-size:1rem;
-  color:var(--c,var(--text));
-  margin-bottom:5px;position:relative;
-}
-.card-sub{font-size:.68rem;color:var(--muted);line-height:1.6;position:relative}
-
-.badge{
-  display:inline-block;
-  font-size:.58rem;font-weight:700;
-  letter-spacing:1.5px;text-transform:uppercase;
-  padding:2px 8px;border-radius:99px;
-  border:1px solid var(--c,var(--accent));
-  color:var(--c,var(--accent));
-  margin-bottom:8px;position:relative;
+/* ── BARRA DE BÚSQUEDA ── */
+#search-bar {
+  position: fixed;
+  top: 68px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  display: flex;
+  gap: 8px;
+  align-items: center;
 }
 
-/* ── BUTTONS ───────────────────────────────────────── */
-.btn-row{display:flex;gap:10px;margin-top:24px;flex-wrap:wrap}
-
-.btn{
-  display:inline-flex;align-items:center;gap:7px;
-  padding:11px 24px;border-radius:9px;border:none;
-  cursor:pointer;
-  font-family:'Syne',sans-serif;font-weight:700;
-  font-size:.85rem;letter-spacing:.4px;
-  transition:all .18s;
-}
-.btn-primary{background:var(--accent);color:#000}
-.btn-primary:hover{filter:brightness(1.1);transform:translateY(-1px)}
-.btn-primary:disabled{opacity:.35;cursor:not-allowed;transform:none}
-.btn-ghost{
-  background:transparent;color:var(--muted);
-  border:1.5px solid var(--border);
-}
-.btn-ghost:hover{border-color:var(--text);color:var(--text)}
-
-/* ── CHAT ──────────────────────────────────────────── */
-#chat-step{display:none}
-#chat-step.active{display:flex;flex-direction:column;gap:16px;animation:up .3s ease}
-
-/* info bar */
-#chat-info{
-  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
-}
-#chat-info .pill{
-  font-size:.65rem;font-weight:700;
-  letter-spacing:1.5px;text-transform:uppercase;
-  padding:4px 12px;border-radius:99px;
-  border:1px solid var(--c2,var(--accent));
-  color:var(--c2,var(--accent));
-}
-#btn-restart{
-  margin-left:auto;
-  font-size:.68rem;
-  padding:5px 14px;
+#search-input {
+  background: rgba(10,15,34,0.9);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  color: var(--text);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.8rem;
+  padding: 6px 14px;
+  width: 220px;
+  letter-spacing: 0.08em;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-/* messages */
-#messages{
-  background:var(--s1);
-  border:1.5px solid var(--border);
-  border-radius:var(--r);
-  padding:20px;
-  min-height:320px;
-  max-height:52vh;
-  overflow-y:auto;
-  display:flex;flex-direction:column;gap:16px;
-  scroll-behavior:smooth;
+#search-input:focus {
+  border-color: var(--cyan);
+  box-shadow: 0 0 12px rgba(0,212,255,0.2);
 }
 
-.msg{
-  display:flex;gap:12px;
-  animation:up .25s ease;
-}
-.msg.user{flex-direction:row-reverse}
+#search-input::placeholder { color: var(--dim); }
 
-.avatar{
-  width:34px;height:34px;min-width:34px;
-  border-radius:50%;
-  display:flex;align-items:center;justify-content:center;
-  font-size:.9rem;
-  font-weight:700;
-}
-.msg.ai .avatar{background:color-mix(in srgb,var(--accent) 15%,var(--s2));color:var(--accent)}
-.msg.user .avatar{background:color-mix(in srgb,var(--blue) 15%,var(--s2));color:var(--blue)}
-
-.bubble{
-  max-width:78%;
-  padding:12px 16px;
-  border-radius:12px;
-  font-size:.8rem;
-  line-height:1.75;
-  white-space:pre-wrap;
-  word-break:break-word;
-}
-.msg.ai .bubble{
-  background:var(--s2);
-  border:1px solid var(--border);
-  border-top-left-radius:4px;
-}
-.msg.user .bubble{
-  background:color-mix(in srgb,var(--blue) 18%,var(--s2));
-  border:1px solid color-mix(in srgb,var(--blue) 30%,transparent);
-  border-top-right-radius:4px;
-  text-align:right;
+#search-btn {
+  background: transparent;
+  border: 1px solid var(--cyan);
+  color: var(--cyan);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.75rem;
+  padding: 6px 12px;
+  cursor: pointer;
+  letter-spacing: 0.1em;
+  border-radius: 2px;
+  transition: background 0.2s, box-shadow 0.2s;
 }
 
-/* typing */
-.typing .bubble{background:var(--s2);border:1px solid var(--border)}
-.dots{display:inline-flex;gap:4px}
-.dots span{
-  width:6px;height:6px;border-radius:50%;
-  background:var(--muted);
-  animation:bounce .9s infinite;
+#search-btn:hover {
+  background: rgba(0,212,255,0.1);
+  box-shadow: 0 0 12px rgba(0,212,255,0.3);
 }
-.dots span:nth-child(2){animation-delay:.2s}
-.dots span:nth-child(3){animation-delay:.4s}
-@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
 
-/* input area */
-#input-area{
-  display:flex;gap:10px;
-  background:var(--s1);
-  border:1.5px solid var(--border);
-  border-radius:var(--r);
-  padding:10px 12px;
-  transition:border-color .2s;
+#search-suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: rgba(10,15,34,0.98);
+  border: 1px solid var(--border);
+  width: 220px;
+  display: none;
+  z-index: 200;
 }
-#input-area:focus-within{border-color:var(--accent)}
 
-#user-input{
-  flex:1;background:transparent;border:none;outline:none;
-  font-family:'JetBrains Mono',monospace;
-  font-size:.82rem;color:var(--text);
-  resize:none;min-height:42px;max-height:160px;
-  line-height:1.6;
-  padding:4px 0;
+#search-suggestions div {
+  padding: 6px 14px;
+  font-size: 0.78rem;
+  cursor: pointer;
+  letter-spacing: 0.06em;
+  transition: background 0.15s;
 }
-#user-input::placeholder{color:var(--muted)}
 
-#send-btn{
-  align-self:flex-end;
-  padding:10px 16px;
-  background:var(--accent);
-  border:none;border-radius:8px;
-  cursor:pointer;
-  font-size:1.1rem;
-  transition:all .18s;
-  min-width:44px;
+#search-suggestions div:hover {
+  background: rgba(0,212,255,0.1);
+  color: var(--cyan);
 }
-#send-btn:hover{filter:brightness(1.15);transform:scale(1.05)}
-#send-btn:disabled{opacity:.35;cursor:not-allowed;transform:none}
 
-.hint{font-size:.62rem;color:var(--muted);text-align:right;margin-top:4px}
-
-/* ── SCROLLBAR ─────────────────────────────────────── */
-#messages::-webkit-scrollbar{width:4px}
-#messages::-webkit-scrollbar-track{background:transparent}
-#messages::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
-
-/* ── RESPONSIVE ────────────────────────────────────── */
-@media(max-width:500px){
-  .grid{grid-template-columns:1fr 1fr}
-  .bubble{max-width:88%}
+/* ── CANVAS PRINCIPAL ── */
+#canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
 }
+
+/* ── TOOLTIP HOVER ── */
+#tooltip {
+  position: fixed;
+  background: rgba(10,15,34,0.95);
+  border: 1px solid var(--cyan);
+  padding: 6px 12px;
+  font-size: 0.72rem;
+  color: var(--cyan);
+  letter-spacing: 0.1em;
+  pointer-events: none;
+  z-index: 200;
+  display: none;
+  border-radius: 2px;
+  box-shadow: 0 0 16px rgba(0,212,255,0.2);
+}
+
+/* ── PANEL DE PLANETA ── */
+#planet-view {
+  position: fixed;
+  inset: 0;
+  background: var(--void);
+  z-index: 300;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  overflow-y: auto;
+}
+
+#planet-view.active { display: flex; }
+
+#back-btn {
+  position: fixed;
+  top: 16px;
+  left: 20px;
+  background: transparent;
+  border: 1px solid var(--dim);
+  color: var(--dim);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.75rem;
+  padding: 6px 14px;
+  cursor: pointer;
+  letter-spacing: 0.1em;
+  z-index: 400;
+  border-radius: 2px;
+  transition: all 0.2s;
+}
+
+#back-btn:hover {
+  border-color: var(--cyan);
+  color: var(--cyan);
+  box-shadow: 0 0 10px rgba(0,212,255,0.2);
+}
+
+#planet-canvas-wrap {
+  position: relative;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding-top: 60px;
+}
+
+#planet-canvas {
+  display: block;
+}
+
+#planet-info {
+  width: 100%;
+  max-width: 900px;
+  padding: 0 24px 60px;
+  animation: fadeUp 0.5s ease forwards;
+}
+
+@keyframes fadeUp {
+  from { opacity:0; transform: translateY(20px); }
+  to   { opacity:1; transform: translateY(0); }
+}
+
+#planet-name-display {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 900;
+  font-size: clamp(2rem, 6vw, 4rem);
+  letter-spacing: 0.25em;
+  text-align: center;
+  margin-bottom: 6px;
+  text-shadow: 0 0 40px currentColor;
+}
+
+#planet-type-display {
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+  text-align: center;
+  color: var(--dim);
+  margin-bottom: 32px;
+  text-transform: uppercase;
+}
+
+#planet-description {
+  font-size: 0.82rem;
+  line-height: 1.8;
+  color: var(--text);
+  text-align: center;
+  max-width: 700px;
+  margin: 0 auto 36px;
+  opacity: 0.85;
+  letter-spacing: 0.04em;
+}
+
+.data-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.data-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  padding: 16px;
+  border-radius: 2px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.data-card:hover {
+  border-color: var(--cyan);
+  box-shadow: 0 0 16px rgba(0,212,255,0.1);
+}
+
+.data-label {
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  color: var(--dim);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.data-value {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+.data-unit {
+  font-size: 0.65rem;
+  color: var(--dim);
+  margin-left: 4px;
+  font-family: 'Share Tech Mono', monospace;
+}
+
+.composition-bar {
+  margin-top: 24px;
+}
+
+.comp-title {
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  color: var(--dim);
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.comp-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.comp-name {
+  font-size: 0.72rem;
+  width: 120px;
+  flex-shrink: 0;
+  color: var(--text);
+}
+
+.comp-track {
+  flex: 1;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.comp-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 1s ease;
+}
+
+.comp-pct {
+  font-size: 0.65rem;
+  color: var(--dim);
+  width: 40px;
+  text-align: right;
+}
+
+/* ── LIVE BADGE ── */
+#live-badge {
+  position: fixed;
+  bottom: 16px;
+  right: 20px;
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  color: var(--green);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  z-index: 100;
+}
+
+#live-badge::before {
+  content: '';
+  width: 6px; height: 6px;
+  background: var(--green);
+  border-radius: 50%;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%,100% { opacity:1; box-shadow: 0 0 0 0 rgba(0,255,157,0.5); }
+  50% { opacity:0.6; box-shadow: 0 0 0 4px rgba(0,255,157,0); }
+}
+
+/* ── LEGEND ── */
+#legend {
+  position: fixed;
+  bottom: 16px;
+  left: 20px;
+  font-size: 0.62rem;
+  color: var(--dim);
+  letter-spacing: 0.08em;
+  z-index: 100;
+  line-height: 1.8;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--void); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 </style>
 </head>
 <body>
-<div id="app">
 
-  <!-- HEADER -->
-  <header>
-    <div class="logo">English<em>AI</em></div>
-    <div class="tagline">Your personal English instructor</div>
-    <div class="glow"></div>
-  </header>
+<!-- Fondo estrellado -->
+<canvas id="stars"></canvas>
 
-  <!-- BREADCRUMB -->
-  <div id="breadcrumb"></div>
+<!-- Header -->
+<div id="header">
+  <div id="logo">HELIO<span>OBSERVATORIO DEL SISTEMA SOLAR</span></div>
+  <div id="clock">
+    <div class="date" id="clock-date"></div>
+    <div id="clock-time"></div>
+  </div>
+</div>
 
-  <!-- STEP 1: Nivel -->
-  <section class="step active" id="step-level">
-    <div class="step-label">Step 01 — Choose your level</div>
-    <div class="grid">
+<!-- Barra búsqueda -->
+<div id="search-bar">
+  <div style="position:relative">
+    <input type="text" id="search-input" placeholder="BUSCAR CUERPO CELESTE..." autocomplete="off" spellcheck="false">
+    <div id="search-suggestions"></div>
+  </div>
+  <button id="search-btn">BUSCAR</button>
+</div>
 
-      <div class="card" data-l="basic" onclick="selectLevel('basic')">
-        <div class="card-ico">🌱</div>
-        <div class="badge">A1 – A2</div>
-        <div class="card-title">Basic</div>
-        <div class="card-sub">Just starting out. Simple words, translations included, friendly pace.</div>
-      </div>
+<!-- Canvas sistema solar -->
+<canvas id="canvas"></canvas>
 
-      <div class="card" data-l="intermediate" onclick="selectLevel('intermediate')">
-        <div class="card-ico">⚡</div>
-        <div class="badge">B1 – B2</div>
-        <div class="card-title">Intermediate</div>
-        <div class="card-sub">You know the basics. Time to build fluency and fix bad habits.</div>
-      </div>
+<!-- Tooltip -->
+<div id="tooltip"></div>
 
-      <div class="card" data-l="advanced" onclick="selectLevel('advanced')">
-        <div class="card-ico">🔥</div>
-        <div class="badge">C1 – C2</div>
-        <div class="card-title">Advanced</div>
-        <div class="card-sub">Near-native level. Nuance, idioms, and style — all in English.</div>
-      </div>
-
+<!-- Panel planeta -->
+<div id="planet-view">
+  <button id="back-btn">← VOLVER</button>
+  <div id="planet-canvas-wrap">
+    <canvas id="planet-canvas" width="320" height="320"></canvas>
+  </div>
+  <div id="planet-info">
+    <div id="planet-name-display"></div>
+    <div id="planet-type-display"></div>
+    <div id="planet-description"></div>
+    <div class="data-grid" id="data-grid"></div>
+    <div class="composition-bar" id="comp-section">
+      <div class="comp-title">COMPOSICIÓN ATMOSFÉRICA / SUPERFICIAL</div>
+      <div id="comp-bars"></div>
     </div>
-    <div class="btn-row">
-      <button class="btn btn-primary" id="btn-to-module" disabled onclick="goToModule()">
-        Choose Module →
-      </button>
-    </div>
-  </section>
+  </div>
+</div>
 
-  <!-- STEP 2: Módulo -->
-  <section class="step" id="step-module">
-    <div class="step-label">Step 02 — Choose a module</div>
-    <div class="grid">
-
-      <div class="card" data-m="vocabulary" onclick="selectModule('vocabulary')">
-        <div class="card-ico">📖</div>
-        <div class="card-title">Vocabulary</div>
-        <div class="card-sub">Learn new words and phrases with examples and context.</div>
-      </div>
-
-      <div class="card" data-m="grammar" onclick="selectModule('grammar')">
-        <div class="card-ico">✏️</div>
-        <div class="card-title">Grammar</div>
-        <div class="card-sub">Rules, examples, and exercises. Fix your grammar for good.</div>
-      </div>
-
-      <div class="card" data-m="conversation" onclick="selectModule('conversation')">
-        <div class="card-ico">💬</div>
-        <div class="card-title">Conversation</div>
-        <div class="card-sub">Free practice with real-time corrections. Talk about anything.</div>
-      </div>
-
-      <div class="card" data-m="quiz" onclick="selectModule('quiz')">
-        <div class="card-ico">🎯</div>
-        <div class="card-title">Quiz</div>
-        <div class="card-sub">Test yourself. Get scored and see where you need work.</div>
-      </div>
-
-    </div>
-    <div class="btn-row">
-      <button class="btn btn-ghost" onclick="goBack('step-level','step-module')">← Back</button>
-      <button class="btn btn-primary" id="btn-start" disabled onclick="startChat()">
-        Start Session →
-      </button>
-    </div>
-  </section>
-
-  <!-- STEP 3: Chat -->
-  <section class="step" id="chat-step">
-
-    <div id="chat-info">
-      <div class="pill" id="pill-level"></div>
-      <div class="pill" id="pill-module" style="--c2:var(--blue)"></div>
-      <button class="btn btn-ghost" id="btn-restart" onclick="restart()">↺ Restart</button>
-    </div>
-
-    <div id="messages"></div>
-
-    <div>
-      <div id="input-area">
-        <textarea
-          id="user-input"
-          placeholder="Type your message… (Enter to send, Shift+Enter for new line)"
-          rows="2"
-        ></textarea>
-        <button id="send-btn" onclick="sendMessage()" title="Send">➤</button>
-      </div>
-      <div class="hint">Enter ↵ to send</div>
-    </div>
-
-  </section>
-
-</div><!-- /app -->
+<!-- Badges -->
+<div id="live-badge">POSICIONES EN TIEMPO REAL</div>
+<div id="legend">SCROLL: ZOOM &nbsp;|&nbsp; DRAG: MOVER &nbsp;|&nbsp; CLIC: SELECCIONAR</div>
 
 <script>
-// ── STATE ──────────────────────────────────────────────────────
-const state = {
-  level: null,
-  module: null,
-  messages: [],   // historial para la API
+// ═══════════════════════════════════════════════════
+//  DATOS PLANETARIOS COMPLETOS
+// ═══════════════════════════════════════════════════
+const BODIES = {
+  sun: {
+    name: 'Sol', type: 'Estrella / Tipo G',
+    color: '#FFF176', glowColor: 'rgba(255,200,50,0.4)',
+    radius: 28, isCenter: true,
+    description: 'Nuestra estrella, una enana amarilla de tipo G que contiene el 99.86% de la masa total del sistema solar. Genera energía mediante fusión nuclear en su núcleo, convirtiendo hidrógeno en helio a temperaturas de 15 millones de grados.',
+    data: {
+      'Masa': { v: '1.989 × 10³⁰', u: 'kg' },
+      'Diámetro': { v: '1,392,684', u: 'km' },
+      'Dist. al centro': { v: '0', u: 'UA' },
+      'Período orbital': { v: '—', u: '' },
+      'Lunas': { v: '0', u: '' },
+      'Temp. superficial': { v: '5,778', u: 'K' },
+      'Temp. núcleo': { v: '15,000,000', u: 'K' },
+      'Rotación': { v: '25.38', u: 'días (ecuador)' },
+    },
+    composition: [
+      { name: 'Hidrógeno', pct: 73.46, color: '#00d4ff' },
+      { name: 'Helio', pct: 24.85, color: '#1e6fff' },
+      { name: 'Oxígeno', pct: 0.77, color: '#00ff9d' },
+      { name: 'Carbono', pct: 0.29, color: '#ff6b35' },
+      { name: 'Otros', pct: 0.63, color: '#4a5a7a' },
+    ]
+  },
+  mercury: {
+    name: 'Mercurio', type: 'Planeta Telúrico',
+    color: '#b5b5b5', glowColor: 'rgba(181,181,181,0.2)',
+    radius: 4, orbitR: 0.387, period: 87.97,
+    description: 'El planeta más pequeño y más cercano al Sol. Sin atmósfera significativa, sus temperaturas oscilan entre −173 °C y 427 °C. Su superficie está cubierta de cráteres similares a los de la Luna. Tiene el año más corto del sistema solar: solo 88 días terrestres.',
+    data: {
+      'Masa': { v: '3.285 × 10²³', u: 'kg' },
+      'Diámetro': { v: '4,879', u: 'km' },
+      'Dist. media al Sol': { v: '0.387', u: 'UA (57.9M km)' },
+      'Período orbital': { v: '87.97', u: 'días' },
+      'Lunas': { v: '0', u: '' },
+      'Temp. superficial': { v: '−173 a 427', u: '°C' },
+      'Excentricidad': { v: '0.2056', u: '' },
+      'Inclinación': { v: '7.00°', u: '' },
+    },
+    composition: [
+      { name: 'Oxígeno', pct: 42, color: '#00ff9d' },
+      { name: 'Sodio', pct: 29, color: '#f5c518' },
+      { name: 'Hidrógeno', pct: 22, color: '#00d4ff' },
+      { name: 'Helio', pct: 6, color: '#1e6fff' },
+      { name: 'Otros', pct: 1, color: '#4a5a7a' },
+    ]
+  },
+  venus: {
+    name: 'Venus', type: 'Planeta Telúrico',
+    color: '#e8c878', glowColor: 'rgba(232,200,120,0.25)',
+    radius: 7, orbitR: 0.723, period: 224.70,
+    description: 'El planeta más caliente del sistema solar pese a no ser el más cercano al Sol, gracias a su densa atmósfera de CO₂ que crea un efecto invernadero extremo. Rota en sentido retrógrado —el Sol sale por el oeste— y un día venusino dura más que su año.',
+    data: {
+      'Masa': { v: '4.867 × 10²⁴', u: 'kg' },
+      'Diámetro': { v: '12,104', u: 'km' },
+      'Dist. media al Sol': { v: '0.723', u: 'UA (108.2M km)' },
+      'Período orbital': { v: '224.70', u: 'días' },
+      'Lunas': { v: '0', u: '' },
+      'Temp. superficial': { v: '462', u: '°C (media)' },
+      'Excentricidad': { v: '0.0067', u: '' },
+      'Presión atmosférica': { v: '92', u: 'atm' },
+    },
+    composition: [
+      { name: 'Dióxido de carbono', pct: 96.5, color: '#ff6b35' },
+      { name: 'Nitrógeno', pct: 3.5, color: '#00d4ff' },
+      { name: 'Dióxido de azufre', pct: 0.015, color: '#f5c518' },
+      { name: 'Otros', pct: 0.001, color: '#4a5a7a' },
+    ]
+  },
+  earth: {
+    name: 'Tierra', type: 'Planeta Telúrico',
+    color: '#4fc3f7', glowColor: 'rgba(79,195,247,0.2)',
+    radius: 7.5, orbitR: 1.000, period: 365.25,
+    description: 'Nuestro hogar. El único planeta conocido con vida, agua líquida en su superficie y una atmósfera que equilibra temperatura y radiación. Tiene un gran satélite natural —la Luna— que estabiliza su eje de rotación y genera las mareas.',
+    data: {
+      'Masa': { v: '5.972 × 10²⁴', u: 'kg' },
+      'Diámetro': { v: '12,742', u: 'km' },
+      'Dist. media al Sol': { v: '1.000', u: 'UA (149.6M km)' },
+      'Período orbital': { v: '365.25', u: 'días' },
+      'Lunas': { v: '1', u: '(La Luna)' },
+      'Temp. superficial': { v: '−88 a 58', u: '°C' },
+      'Excentricidad': { v: '0.0167', u: '' },
+      'Inclinación eje': { v: '23.44°', u: '' },
+    },
+    composition: [
+      { name: 'Nitrógeno', pct: 78.09, color: '#00d4ff' },
+      { name: 'Oxígeno', pct: 20.95, color: '#00ff9d' },
+      { name: 'Argón', pct: 0.93, color: '#1e6fff' },
+      { name: 'Dióxido de carbono', pct: 0.04, color: '#ff6b35' },
+      { name: 'Otros', pct: 0.04, color: '#4a5a7a' },
+    ]
+  },
+  moon: {
+    name: 'Luna', type: 'Satélite Natural (Tierra)',
+    color: '#d0d0d0', glowColor: 'rgba(208,208,208,0.15)',
+    radius: 3.5, orbitR: 1.003, period: 365.25,
+    moonOrbit: true,
+    description: 'El único satélite natural de la Tierra y el quinto más grande del sistema solar. Su influencia gravitacional causa las mareas oceánicas. Su superficie está cubierta de cráteres, mares basálticos y regolito gris. El ser humano pisó la Luna por primera vez en 1969.',
+    data: {
+      'Masa': { v: '7.342 × 10²²', u: 'kg' },
+      'Diámetro': { v: '3,474', u: 'km' },
+      'Dist. a la Tierra': { v: '384,400', u: 'km (media)' },
+      'Período orbital': { v: '27.32', u: 'días (sidéreo)' },
+      'Lunas propias': { v: '0', u: '' },
+      'Temp. superficial': { v: '−173 a 127', u: '°C' },
+      'Excentricidad': { v: '0.0549', u: '' },
+      'Inclinación': { v: '5.14°', u: 'respecto eclíptica' },
+    },
+    composition: [
+      { name: 'Oxígeno', pct: 43, color: '#00ff9d' },
+      { name: 'Silicio', pct: 21, color: '#f5c518' },
+      { name: 'Magnesio', pct: 19, color: '#b5b5b5' },
+      { name: 'Hierro', pct: 10, color: '#ff6b35' },
+      { name: 'Calcio', pct: 7, color: '#00d4ff' },
+    ]
+  },
+  mars: {
+    name: 'Marte', type: 'Planeta Telúrico',
+    color: '#e07040', glowColor: 'rgba(224,112,64,0.2)',
+    radius: 5.5, orbitR: 1.524, period: 686.97,
+    description: 'El Planeta Rojo. Su color proviene del óxido de hierro en su superficie. Alberga el volcán más alto del sistema solar (Olympus Mons, 21 km) y el cañón más largo (Valles Marineris, 4000 km). Evidencias sugieren que tuvo agua líquida en su pasado.',
+    data: {
+      'Masa': { v: '6.390 × 10²³', u: 'kg' },
+      'Diámetro': { v: '6,779', u: 'km' },
+      'Dist. media al Sol': { v: '1.524', u: 'UA (227.9M km)' },
+      'Período orbital': { v: '686.97', u: 'días' },
+      'Lunas': { v: '2', u: '(Fobos, Deimos)' },
+      'Temp. superficial': { v: '−153 a 20', u: '°C' },
+      'Excentricidad': { v: '0.0934', u: '' },
+      'Inclinación eje': { v: '25.19°', u: '' },
+    },
+    composition: [
+      { name: 'Dióxido de carbono', pct: 95.32, color: '#ff6b35' },
+      { name: 'Nitrógeno', pct: 2.6, color: '#00d4ff' },
+      { name: 'Argón', pct: 1.9, color: '#1e6fff' },
+      { name: 'Oxígeno', pct: 0.13, color: '#00ff9d' },
+      { name: 'Otros', pct: 0.05, color: '#4a5a7a' },
+    ]
+  },
+  asteroids: {
+    name: 'Cinturón de Asteroides', type: 'Región de Cuerpos Menores',
+    color: '#7a6a50', glowColor: 'rgba(122,106,80,0.15)',
+    radius: 5, orbitR: 2.7, period: 0, isBelt: true,
+    description: 'Región entre Marte y Júpiter que contiene millones de rocas y cuerpos menores, restos del sistema solar primitivo que nunca se acretaron en un planeta por la influencia gravitacional de Júpiter. El mayor objeto es Ceres, clasificado como planeta enano, con 940 km de diámetro.',
+    data: {
+      'Dist. interior (Ceres)': { v: '2.77', u: 'UA' },
+      'Dist. exterior': { v: '3.27', u: 'UA' },
+      'Objetos conocidos': { v: '>1,000,000', u: '' },
+      'Masa total': { v: '~3% de la Luna', u: '' },
+      'Cuerpo mayor': { v: 'Ceres (940 km)', u: '' },
+      'Temp. media': { v: '−73', u: '°C' },
+      'Inclinación media': { v: '~10°', u: '' },
+      'Excentricidad media': { v: '~0.14', u: '' },
+    },
+    composition: [
+      { name: 'Silicatos', pct: 75, color: '#7a6a50' },
+      { name: 'Metales (Fe/Ni)', pct: 15, color: '#b5b5b5' },
+      { name: 'Carbono', pct: 8, color: '#3a3a3a' },
+      { name: 'Hielo', pct: 2, color: '#00d4ff' },
+    ]
+  },
+  jupiter: {
+    name: 'Júpiter', type: 'Gigante Gaseoso',
+    color: '#c88040', glowColor: 'rgba(200,128,64,0.2)',
+    radius: 18, orbitR: 5.203, period: 4332.59,
+    description: 'El planeta más grande del sistema solar, con una masa 2.5 veces mayor que todos los demás planetas juntos. Su Gran Mancha Roja es una tormenta anticiclónica activa hace más de 350 años. Tiene 95 lunas conocidas, incluidas las cuatro galileanas descubiertas en 1610.',
+    data: {
+      'Masa': { v: '1.898 × 10²⁷', u: 'kg' },
+      'Diámetro': { v: '139,820', u: 'km' },
+      'Dist. media al Sol': { v: '5.203', u: 'UA (778.5M km)' },
+      'Período orbital': { v: '11.86', u: 'años' },
+      'Lunas': { v: '95', u: 'conocidas' },
+      'Temp. nube cima': { v: '−145', u: '°C' },
+      'Excentricidad': { v: '0.0489', u: '' },
+      'Rotación': { v: '9h 56m', u: '' },
+    },
+    composition: [
+      { name: 'Hidrógeno', pct: 89, color: '#00d4ff' },
+      { name: 'Helio', pct: 10, color: '#1e6fff' },
+      { name: 'Metano', pct: 0.3, color: '#ff6b35' },
+      { name: 'Amoniaco', pct: 0.026, color: '#f5c518' },
+      { name: 'Otros', pct: 0.674, color: '#4a5a7a' },
+    ]
+  },
+  saturn: {
+    name: 'Saturno', type: 'Gigante Gaseoso',
+    color: '#e8d890', glowColor: 'rgba(232,216,144,0.2)',
+    radius: 15, orbitR: 9.537, period: 10759.22,
+    hasRings: true,
+    description: 'El planeta con los anillos más espectaculares del sistema solar, formados por partículas de hielo y roca. Es el menos denso de todos —flotaría en agua. Tiene 146 lunas conocidas, siendo Titán la más grande, con atmósfera densa de nitrógeno y lagos de metano líquido.',
+    data: {
+      'Masa': { v: '5.683 × 10²⁶', u: 'kg' },
+      'Diámetro': { v: '116,460', u: 'km' },
+      'Dist. media al Sol': { v: '9.537', u: 'UA (1,432M km)' },
+      'Período orbital': { v: '29.46', u: 'años' },
+      'Lunas': { v: '146', u: 'conocidas' },
+      'Temp. nube cima': { v: '−178', u: '°C' },
+      'Densidad': { v: '0.687', u: 'g/cm³ (< agua)' },
+      'Rotación': { v: '10h 42m', u: '' },
+    },
+    composition: [
+      { name: 'Hidrógeno', pct: 96.3, color: '#00d4ff' },
+      { name: 'Helio', pct: 3.25, color: '#1e6fff' },
+      { name: 'Metano', pct: 0.45, color: '#ff6b35' },
+      { name: 'Otros', pct: 0.05, color: '#4a5a7a' },
+    ]
+  },
+  uranus: {
+    name: 'Urano', type: 'Gigante de Hielo',
+    color: '#7de8e8', glowColor: 'rgba(125,232,232,0.2)',
+    radius: 11, orbitR: 19.191, period: 30688.50,
+    description: 'El único planeta que orbita el Sol de lado, con una inclinación axial de 97.77°, posiblemente resultado de una colisión titánica en su pasado. Su atmósfera de metano absorbe la luz roja, dándole ese color azul-verdoso característico. Tiene anillos delgados y 28 lunas conocidas.',
+    data: {
+      'Masa': { v: '8.681 × 10²⁵', u: 'kg' },
+      'Diámetro': { v: '50,724', u: 'km' },
+      'Dist. media al Sol': { v: '19.191', u: 'UA (2,871M km)' },
+      'Período orbital': { v: '84.01', u: 'años' },
+      'Lunas': { v: '28', u: 'conocidas' },
+      'Temp. mín. atmosférica': { v: '−224', u: '°C' },
+      'Inclinación eje': { v: '97.77°', u: '' },
+      'Excentricidad': { v: '0.0469', u: '' },
+    },
+    composition: [
+      { name: 'Hidrógeno', pct: 83, color: '#00d4ff' },
+      { name: 'Helio', pct: 15, color: '#1e6fff' },
+      { name: 'Metano', pct: 2.3, color: '#7de8e8' },
+      { name: 'Amoniaco', pct: 0.013, color: '#f5c518' },
+    ]
+  },
+  neptune: {
+    name: 'Neptuno', type: 'Gigante de Hielo',
+    color: '#4070ff', glowColor: 'rgba(64,112,255,0.2)',
+    radius: 10, orbitR: 30.069, period: 60182.00,
+    description: 'El planeta más lejano del sistema solar. Sus vientos son los más rápidos: hasta 2,100 km/h. Tiene la Gran Mancha Oscura, una tormenta del tamaño de la Tierra. Su luna más grande, Tritón, orbita en sentido retrógrado y probablemente fue capturado del Cinturón de Kuiper.',
+    data: {
+      'Masa': { v: '1.024 × 10²⁶', u: 'kg' },
+      'Diámetro': { v: '49,244', u: 'km' },
+      'Dist. media al Sol': { v: '30.069', u: 'UA (4,495M km)' },
+      'Período orbital': { v: '164.8', u: 'años' },
+      'Lunas': { v: '16', u: 'conocidas' },
+      'Temp. nube cima': { v: '−218', u: '°C' },
+      'Vientos máx.': { v: '2,100', u: 'km/h' },
+      'Excentricidad': { v: '0.0097', u: '' },
+    },
+    composition: [
+      { name: 'Hidrógeno', pct: 80, color: '#00d4ff' },
+      { name: 'Helio', pct: 19, color: '#1e6fff' },
+      { name: 'Metano', pct: 1.5, color: '#4070ff' },
+      { name: 'Otros', pct: 0.5, color: '#4a5a7a' },
+    ]
+  },
+  pluto: {
+    name: 'Plutón', type: 'Planeta Enano',
+    color: '#c8a870', glowColor: 'rgba(200,168,112,0.15)',
+    radius: 3, orbitR: 39.482, period: 90560.00,
+    description: 'Reclasificado como planeta enano en 2006. Tiene una atmósfera tenue de nitrógeno que se congela en invierno. La sonda New Horizons en 2015 reveló montañas de hielo de agua de hasta 3,500 m y la famosa región Tombaugh, con forma de corazón, cubierta de nitrógeno sólido.',
+    data: {
+      'Masa': { v: '1.303 × 10²²', u: 'kg' },
+      'Diámetro': { v: '2,376', u: 'km' },
+      'Dist. media al Sol': { v: '39.48', u: 'UA (5,906M km)' },
+      'Período orbital': { v: '247.9', u: 'años' },
+      'Lunas': { v: '5', u: '(Caronte, Nix, Hidra...)' },
+      'Temp. superficial': { v: '−233', u: '°C' },
+      'Excentricidad': { v: '0.2488', u: '' },
+      'Inclinación orbital': { v: '17.14°', u: '' },
+    },
+    composition: [
+      { name: 'Nitrógeno (hielo)', pct: 98, color: '#00d4ff' },
+      { name: 'Metano (hielo)', pct: 1.0, color: '#ff6b35' },
+      { name: 'Monóxido de carbono', pct: 0.5, color: '#f5c518' },
+      { name: 'Otros', pct: 0.5, color: '#4a5a7a' },
+    ]
+  },
+  halley: {
+    name: "Cometa Halley", type: 'Cometa Periódico (1P/Halley)',
+    color: '#a0c8ff', glowColor: 'rgba(160,200,255,0.2)',
+    radius: 3, orbitR: 17.8, period: 27507.00, isComet: true,
+    description: 'El cometa más famoso de la historia, visible desde la Tierra a simple vista cada 75–76 años. Su núcleo mide ~15×8 km. Fue el primer cometa reconocido como periódico, por Edmond Halley en 1705. Su próximo perihelio está estimado para julio de 2061. Genera las lluvias de meteoros Oriónidas y Acuáridas.',
+    data: {
+      'Período orbital': { v: '75–76', u: 'años' },
+      'Perihelio': { v: '0.586', u: 'UA' },
+      'Afelio': { v: '35.08', u: 'UA' },
+      'Excentricidad': { v: '0.967', u: '' },
+      'Inclinación': { v: '162.26°', u: '(retrógrado)' },
+      'Núcleo': { v: '15 × 8', u: 'km' },
+      'Último perihelio': { v: '1986', u: '' },
+      'Próximo perihelio': { v: '2061', u: '' },
+    },
+    composition: [
+      { name: 'Agua (hielo)', pct: 80, color: '#00d4ff' },
+      { name: 'Monóxido de carbono', pct: 10, color: '#f5c518' },
+      { name: 'Dióxido de carbono', pct: 4, color: '#ff6b35' },
+      { name: 'Polvo y silicatos', pct: 4, color: '#7a6a50' },
+      { name: 'Otros orgánicos', pct: 2, color: '#4a5a7a' },
+    ]
+  },
+  hale_bopp: {
+    name: 'Cometa Hale-Bopp', type: 'Cometa No Periódico (C/1995 O1)',
+    color: '#d0e8ff', glowColor: 'rgba(208,232,255,0.2)',
+    radius: 3, orbitR: 180, period: 0, isComet: true,
+    description: 'Uno de los cometas más brillantes del siglo XX, visible a simple vista durante 18 meses entre 1996 y 1997. Su núcleo mide ~60 km, excepcionalmente grande. Fue el primer cometa en detectársele una tercera cola de sodio, además de la clásica de polvo y de gas. Su período orbital es de ~2,520 años.',
+    data: {
+      'Período orbital': { v: '~2,520', u: 'años' },
+      'Perihelio': { v: '0.914', u: 'UA' },
+      'Afelio': { v: '~360', u: 'UA' },
+      'Excentricidad': { v: '0.9951', u: '' },
+      'Inclinación': { v: '89.43°', u: '' },
+      'Núcleo diámetro': { v: '~60', u: 'km' },
+      'Último perihelio': { v: '1997', u: '' },
+      'Próximo perihelio': { v: '~4385', u: '' },
+    },
+    composition: [
+      { name: 'Agua (hielo)', pct: 75, color: '#00d4ff' },
+      { name: 'Monóxido de carbono', pct: 14, color: '#f5c518' },
+      { name: 'Dióxido de carbono', pct: 6, color: '#ff6b35' },
+      { name: 'Sodio', pct: 2, color: '#e8d890' },
+      { name: 'Polvo y otros', pct: 3, color: '#7a6a50' },
+    ]
+  },
+  churyumov: {
+    name: 'Cometa 67P', type: 'Cometa Periódico (Churyumov-Gerasimenko)',
+    color: '#b8a880', glowColor: 'rgba(184,168,128,0.15)',
+    radius: 2.5, orbitR: 3.46, period: 2355.0, isComet: true,
+    description: 'Famoso por ser el primer cometa en recibir un aterrizador: la sonda Rosetta de la ESA orbitó el cometa en 2014–2016, y la sonda Philae aterrizó en su superficie. Tiene forma de "pato de goma", formada por dos lóbulos. Reveló que los cometas son más porosos y oscuros de lo esperado.',
+    data: {
+      'Período orbital': { v: '6.44', u: 'años' },
+      'Perihelio': { v: '1.243', u: 'UA' },
+      'Afelio': { v: '5.68', u: 'UA' },
+      'Excentricidad': { v: '0.641', u: '' },
+      'Inclinación': { v: '7.04°', u: '' },
+      'Dimensiones núcleo': { v: '4.3 × 4.1 × 2.6', u: 'km' },
+      'Sonda visitante': { v: 'Rosetta (ESA)', u: '2014–2016' },
+      'Último perihelio': { v: '2021', u: '' },
+    },
+    composition: [
+      { name: 'Agua (hielo)', pct: 70, color: '#00d4ff' },
+      { name: 'Polvo/Carbono', pct: 20, color: '#7a6a50' },
+      { name: 'CO₂ y CO', pct: 7, color: '#ff6b35' },
+      { name: 'Orgánicos complejos', pct: 3, color: '#f5c518' },
+    ]
+  },
 };
 
-// ── LEVEL → COLORES ────────────────────────────────────────────
-const LEVEL_COLOR = {basic:'var(--basic)',intermediate:'var(--inter)',advanced:'var(--adv)'};
-const MODULE_COLOR = {vocabulary:'var(--accent)',grammar:'var(--blue)',conversation:'var(--orange)',quiz:'var(--red)'};
-const MODULE_LABEL = {vocabulary:'📖 Vocabulary',grammar:'✏️ Grammar',conversation:'💬 Conversation',quiz:'🎯 Quiz'};
-const LEVEL_LABEL  = {basic:'🌱 Basic',intermediate:'⚡ Intermediate',advanced:'🔥 Advanced'};
+// ═══════════════════════════════════════════════════
+//  EFEMÉRIDES KEPLERIANAS (Jean Meeus, Cap. 31)
+// ═══════════════════════════════════════════════════
+const ORBITAL_ELEMENTS = {
+  mercury: { L0:252.25084, LD:149472.67411, e0:0.20563069, eD:0.00002527, a:0.387098 },
+  venus:   { L0:181.97973, LD:58517.81539,  e0:0.00677323, eD:-0.00004938,a:0.723332 },
+  earth:   { L0:100.46435, LD:35999.37306,  e0:0.01671022, eD:-0.00003804,a:1.000000 },
+  mars:    { L0:355.45332, LD:19140.29934,  e0:0.09341233, eD:0.00011902, a:1.523688 },
+  jupiter: { L0:34.40438,  LD:3034.90567,   e0:0.04849485, eD:0.00016322, a:5.202603 },
+  saturn:  { L0:49.94432,  LD:1222.11370,   e0:0.05550825, eD:-0.00032495,a:9.537070 },
+  uranus:  { L0:313.23218, LD:428.49512,    e0:0.04629590, eD:-0.00020455,a:19.19126 },
+  neptune: { L0:304.88003, LD:218.46515,    e0:0.00898809, eD:0.00006539, a:30.06896 },
+  pluto:   { L0:238.92881, LD:145.18042,    e0:0.24882730, eD:0.00005170, a:39.48169 },
+};
 
-// ── WORKER URL — vacío = misma origin ─────────────────────────
-// Cloudflare Pages sirve el _worker.js en la misma origin
-const WORKER_URL = '/chat';
-
-// ── NAV ────────────────────────────────────────────────────────
-function showStep(id){
-  document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
+function julianDay(date) {
+  let y = date.getUTCFullYear(), m = date.getUTCMonth()+1;
+  const d = date.getUTCDate() + date.getUTCHours()/24 + date.getUTCMinutes()/1440 + date.getUTCSeconds()/86400;
+  if (m <= 2) { y -= 1; m += 12; }
+  const A = Math.floor(y/100), B = 2 - A + Math.floor(A/4);
+  return Math.floor(365.25*(y+4716)) + Math.floor(30.6001*(m+1)) + d + B - 1524.5;
 }
 
-function updateBreadcrumb(){
-  const bc = document.getElementById('breadcrumb');
-  const parts = [];
-  if(state.level)  parts.push(`<span>${LEVEL_LABEL[state.level]}</span>`);
-  if(state.module) parts.push(`<span>${MODULE_LABEL[state.module]}</span>`);
-  bc.innerHTML = parts.join('<span class="sep"> / </span>');
+function getAngle(bodyKey, date) {
+  const jd = julianDay(date);
+  const T = (jd - 2451545.0) / 36525.0;
+  const el = ORBITAL_ELEMENTS[bodyKey];
+  if (!el) return 0;
+  const L = (el.L0 + el.LD * T) % 360;
+  return ((L % 360) + 360) % 360;
 }
 
-// ── STEP 1: seleccionar nivel ──────────────────────────────────
-function selectLevel(lvl){
-  state.level = lvl;
-  document.querySelectorAll('[data-l]').forEach(c=>c.classList.remove('sel'));
-  document.querySelector(`[data-l="${lvl}"]`).classList.add('sel');
-  document.getElementById('btn-to-module').disabled = false;
-  updateBreadcrumb();
+// Luna: posición real relativa a la Tierra
+function getMoonAngle(date) {
+  const jd = julianDay(date);
+  const T = (jd - 2451545.0) / 36525.0;
+  // Longitud media de la Luna (Meeus)
+  const L = (218.3164477 + 481267.88123421*T) % 360;
+  return ((L % 360) + 360) % 360;
 }
 
-function goToModule(){
-  showStep('step-module');
-  updateBreadcrumb();
+// Cometas — posición simplificada basada en período
+function getCometAngle(bodyKey, date) {
+  const body = BODIES[bodyKey];
+  if (!body || !body.period) return Math.random() * 360;
+  const jd = julianDay(date);
+  const ref = 2451545.0;
+  return ((((jd - ref) / body.period) * 360) % 360 + 360) % 360;
 }
 
-// ── STEP 2: seleccionar módulo ─────────────────────────────────
-function selectModule(mod){
-  state.module = mod;
-  document.querySelectorAll('[data-m]').forEach(c=>c.classList.remove('sel'));
-  document.querySelector(`[data-m="${mod}"]`).classList.add('sel');
-  document.getElementById('btn-start').disabled = false;
-  updateBreadcrumb();
-}
-
-function goBack(show, hide){
-  document.getElementById(hide).classList.remove('active');
-  showStep(show);
-  state.module = null;
-  document.getElementById('btn-start').disabled = true;
-  document.querySelectorAll('[data-m]').forEach(c=>c.classList.remove('sel'));
-  updateBreadcrumb();
-}
-
-// ── STEP 3: iniciar chat ───────────────────────────────────────
-function startChat(){
-  state.messages = [];
-
-  // pills
-  const pl = document.getElementById('pill-level');
-  pl.textContent = LEVEL_LABEL[state.level];
-  pl.style.setProperty('--c2', LEVEL_COLOR[state.level]);
-
-  const pm = document.getElementById('pill-module');
-  pm.textContent = MODULE_LABEL[state.module];
-  pm.style.setProperty('--c2', MODULE_COLOR[state.module]);
-
-  document.getElementById('messages').innerHTML = '';
-  showStep('chat-step');
-  updateBreadcrumb();
-
-  // mensaje de bienvenida del AI
-  const welcome = {
-    basic:        "Hello! 👋 I'm your English instructor. Let's start! Tell me: what topic do you want to learn today? (¿Qué tema quieres aprender hoy?)",
-    intermediate: "Hey! Ready to level up your English? What topic or question do you want to work on today?",
-    advanced:     "Welcome. I'll be your English instructor today. What aspect of the language do you want to tackle — grammar, vocabulary, writing style, or something else?",
-  };
-
-  const modWelcome = {
-    vocabulary:   " I'll teach you new words and phrases.",
-    grammar:      " We'll cover grammar rules with exercises.",
-    conversation: " We'll have a real conversation — I'll correct you as we go.",
-    quiz:         " I'll quiz you and score your answers.",
-  };
-
-  const msg = welcome[state.level] + modWelcome[state.module];
-  addMessage('ai', msg);
-}
-
-// ── MENSAJES ───────────────────────────────────────────────────
-function addMessage(role, text){
-  const wrap = document.getElementById('messages');
-  const div  = document.createElement('div');
-  div.className = `msg ${role}`;
-
-  const avatar = document.createElement('div');
-  avatar.className = 'avatar';
-  avatar.textContent = role === 'ai' ? '🤖' : '👤';
-
-  const bubble = document.createElement('div');
-  bubble.className = 'bubble';
-  bubble.textContent = text;
-
-  div.appendChild(avatar);
-  div.appendChild(bubble);
-  wrap.appendChild(div);
-  wrap.scrollTop = wrap.scrollHeight;
-}
-
-function addTyping(){
-  const wrap = document.getElementById('messages');
-  const div  = document.createElement('div');
-  div.className = 'msg ai typing';
-  div.id = 'typing-indicator';
-  div.innerHTML = `
-    <div class="avatar">🤖</div>
-    <div class="bubble"><div class="dots"><span></span><span></span><span></span></div></div>
-  `;
-  wrap.appendChild(div);
-  wrap.scrollTop = wrap.scrollHeight;
-}
-
-function removeTyping(){
-  const t = document.getElementById('typing-indicator');
-  if(t) t.remove();
-}
-
-// ── ENVIAR MENSAJE ─────────────────────────────────────────────
-async function sendMessage(){
-  const input  = document.getElementById('user-input');
-  const sendBtn = document.getElementById('send-btn');
-  const text   = input.value.trim();
-  if(!text) return;
-
-  addMessage('user', text);
-  input.value = '';
-  input.style.height = 'auto';
-  sendBtn.disabled = true;
-
-  addTyping();
-
-  try {
-    const res = await fetch(WORKER_URL, {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({
-        level:       state.level,
-        module:      state.module,
-        userMessage: text,
-        messages:    state.messages,
-      }),
+// ═══════════════════════════════════════════════════
+//  CANVAS DE ESTRELLAS
+// ═══════════════════════════════════════════════════
+function initStars() {
+  const c = document.getElementById('stars');
+  const ctx = c.getContext('2d');
+  c.width = window.innerWidth; c.height = window.innerHeight;
+  const stars = Array.from({length:300}, () => ({
+    x: Math.random()*c.width, y: Math.random()*c.height,
+    r: Math.random()*1.2+0.2, a: Math.random(), twinkle: Math.random()*0.02+0.003
+  }));
+  let t = 0;
+  function draw() {
+    ctx.clearRect(0,0,c.width,c.height);
+    ctx.fillStyle = '#02040e';
+    ctx.fillRect(0,0,c.width,c.height);
+    stars.forEach(s => {
+      const alpha = 0.3 + 0.5*Math.abs(Math.sin(t*s.twinkle + s.a*100));
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
+      ctx.fillStyle = `rgba(200,220,255,${alpha})`;
+      ctx.fill();
     });
-
-    const data = await res.json();
-    removeTyping();
-
-    if(data.error){
-      addMessage('ai', `⚠️ Error: ${data.error}`);
-    } else {
-      addMessage('ai', data.reply);
-      state.messages = data.updatedMessages;
-    }
-
-  } catch(e){
-    removeTyping();
-    addMessage('ai', `⚠️ Network error: ${e.message}`);
+    t++;
+    requestAnimationFrame(draw);
   }
-
-  sendBtn.disabled = false;
-  input.focus();
+  draw();
+  window.addEventListener('resize', () => { c.width=window.innerWidth; c.height=window.innerHeight; });
 }
 
-// ── RESTART ────────────────────────────────────────────────────
-function restart(){
-  state.level  = null;
-  state.module = null;
-  state.messages = [];
-  document.querySelectorAll('.card').forEach(c=>c.classList.remove('sel'));
-  document.getElementById('btn-to-module').disabled = true;
-  document.getElementById('btn-start').disabled = true;
-  document.getElementById('breadcrumb').innerHTML = '';
-  showStep('step-level');
+// ═══════════════════════════════════════════════════
+//  SISTEMA SOLAR CANVAS
+// ═══════════════════════════════════════════════════
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+let W, H, cx, cy;
+let scale = 1, offsetX = 0, offsetY = 0;
+let isDragging = false, dragStart = {x:0,y:0};
+let hitTargets = [];
+
+// Escala visual (px por UA para el radio de órbita máx ~40UA)
+function getBaseScale() { return Math.min(W, H) * 0.44 / 42; }
+
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+  cx = W/2 + offsetX; cy = H/2 + offsetY;
 }
 
-// ── ENTER para enviar ──────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', ()=>{
-  const input = document.getElementById('user-input');
-  input.addEventListener('keydown', e=>{
-    if(e.key === 'Enter' && !e.shiftKey){
-      e.preventDefault();
-      sendMessage();
+window.addEventListener('resize', resize);
+resize();
+
+function orbitPxRadius(ua) {
+  return ua * getBaseScale() * scale;
+}
+
+function bodyPos(key, now) {
+  const b = BODIES[key];
+  if (b.isCenter) return { x: cx, y: cy };
+  let angle;
+  if (key === 'moon') {
+    const moonAngleDeg = getMoonAngle(now);
+    const moonOrbitPx = 18 * scale; // Luna muy cerca de Tierra en vista global
+    const earthAngle = getAngle('earth', now) * Math.PI/180;
+    const earthR = orbitPxRadius(1.0);
+    const ex = cx + Math.cos(earthAngle) * earthR;
+    const ey = cy + Math.sin(earthAngle) * earthR;
+    return { x: ex + Math.cos(moonAngleDeg*Math.PI/180)*moonOrbitPx,
+             y: ey + Math.sin(moonAngleDeg*Math.PI/180)*moonOrbitPx };
+  }
+  if (b.isComet) angle = getCometAngle(key, now) * Math.PI/180;
+  else           angle = getAngle(key, now) * Math.PI/180;
+  const r = orbitPxRadius(b.orbitR);
+  return { x: cx + Math.cos(angle)*r, y: cy + Math.sin(angle)*r };
+}
+
+function drawOrbit(ua, color, dash) {
+  const r = orbitPxRadius(ua);
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI*2);
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 0.5;
+  if (dash) ctx.setLineDash(dash); else ctx.setLineDash([]);
+  ctx.stroke();
+  ctx.setLineDash([]);
+}
+
+function drawAsteroidBelt(now) {
+  const innerR = orbitPxRadius(2.2);
+  const outerR = orbitPxRadius(3.2);
+  const seed = 42;
+  for (let i = 0; i < 280; i++) {
+    const angle = (i / 280) * Math.PI*2 + (julianDay(now) * 0.0001 + i*0.037);
+    const r = innerR + (Math.sin(i*137.5)*0.5+0.5) * (outerR - innerR);
+    const x = cx + Math.cos(angle)*r;
+    const y = cy + Math.sin(angle)*r;
+    const alpha = 0.2 + (Math.sin(i*7.3)*0.5+0.5)*0.4;
+    ctx.beginPath();
+    ctx.arc(x, y, 0.8 + Math.sin(i*3.7)*0.6, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(160,140,100,${alpha})`;
+    ctx.fill();
+  }
+}
+
+function drawSaturnRings(x, y, pr) {
+  for (let i = 1.6; i <= 2.4; i += 0.15) {
+    ctx.beginPath();
+    ctx.ellipse(x, y, pr*i, pr*i*0.28, 0, 0, Math.PI*2);
+    ctx.strokeStyle = `rgba(200,180,120,${0.3 - (i-1.6)*0.12})`;
+    ctx.lineWidth = pr * 0.18;
+    ctx.stroke();
+  }
+}
+
+function drawComet(x, y, pr, angle) {
+  // Cola
+  const tailLen = 30 * scale;
+  const tailAngle = angle + Math.PI;
+  const grd = ctx.createLinearGradient(x, y, x+Math.cos(tailAngle)*tailLen, y+Math.sin(tailAngle)*tailLen);
+  grd.addColorStop(0, 'rgba(160,200,255,0.6)');
+  grd.addColorStop(1, 'rgba(160,200,255,0)');
+  ctx.beginPath();
+  ctx.moveTo(x, y);
+  ctx.lineTo(x+Math.cos(tailAngle)*tailLen, y+Math.sin(tailAngle)*tailLen);
+  ctx.strokeStyle = grd;
+  ctx.lineWidth = 2;
+  ctx.stroke();
+}
+
+function drawSolarSystem(now) {
+  ctx.clearRect(0,0,W,H);
+
+  // Órbitas
+  const orbitColor = 'rgba(30,64,255,0.18)';
+  const cometColor = 'rgba(100,160,255,0.12)';
+  ['mercury','venus','earth','mars','jupiter','saturn','uranus','neptune','pluto']
+    .forEach(k => drawOrbit(BODIES[k].orbitR, orbitColor));
+  drawOrbit(BODIES.halley.orbitR, cometColor, [4,6]);
+  drawOrbit(BODIES.churyumov.orbitR, cometColor, [3,5]);
+
+  // Cinturón de asteroides
+  drawAsteroidBelt(now);
+
+  hitTargets = [];
+
+  Object.entries(BODIES).forEach(([key, b]) => {
+    if (b.isBelt) return;
+    const pos = bodyPos(key, now);
+    const pr = Math.max(b.radius * (b.isCenter ? 1 : Math.sqrt(scale)) * (b.isCenter ? 1 : 0.85), b.isCenter ? 12 : 3);
+
+    // Cometa: cola
+    if (b.isComet) {
+      let angle = getCometAngle(key, now) * Math.PI/180;
+      drawComet(pos.x, pos.y, pr, angle);
     }
+
+    // Glow
+    if (b.glowColor) {
+      const glowR = pr * (b.isCenter ? 2.5 : 2.2);
+      const grd = ctx.createRadialGradient(pos.x, pos.y, pr*0.5, pos.x, pos.y, glowR);
+      grd.addColorStop(0, b.glowColor);
+      grd.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.beginPath();
+      ctx.arc(pos.x, pos.y, glowR, 0, Math.PI*2);
+      ctx.fillStyle = grd;
+      ctx.fill();
+    }
+
+    // Anillos Saturno
+    if (b.hasRings) drawSaturnRings(pos.x, pos.y, pr);
+
+    // Cuerpo
+    const bodyGrd = ctx.createRadialGradient(pos.x-pr*0.3, pos.y-pr*0.3, pr*0.1, pos.x, pos.y, pr);
+    bodyGrd.addColorStop(0, lightenColor(b.color, 40));
+    bodyGrd.addColorStop(1, b.color);
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y, pr, 0, Math.PI*2);
+    ctx.fillStyle = bodyGrd;
+    ctx.fill();
+
+    // Etiqueta
+    if (scale > 0.4) {
+      ctx.fillStyle = 'rgba(180,200,230,0.7)';
+      ctx.font = `${Math.max(9, 10*scale)}px 'Share Tech Mono'`;
+      ctx.textAlign = 'center';
+      ctx.fillText(b.name.toUpperCase(), pos.x, pos.y + pr + 12);
+    }
+
+    // Hit target
+    const hitR = Math.max(pr * 1.5, 14);
+    hitTargets.push({ key, x: pos.x, y: pos.y, r: hitR });
   });
-  // auto-resize
-  input.addEventListener('input', ()=>{
-    input.style.height = 'auto';
-    input.style.height = Math.min(input.scrollHeight, 160) + 'px';
+
+  // Hit para cinturón
+  hitTargets.push({ key:'asteroids', x:cx, y:cy, r: orbitPxRadius(2.7), belt:true });
+}
+
+function lightenColor(hex, amt) {
+  const n = parseInt(hex.replace('#',''), 16);
+  const r = Math.min(255, (n>>16)+amt);
+  const g = Math.min(255, ((n>>8)&0xff)+amt);
+  const b = Math.min(255, (n&0xff)+amt);
+  return `rgb(${r},${g},${b})`;
+}
+
+// ── LOOP ──
+let animFrame;
+function startLoop() {
+  function loop() {
+    cx = W/2 + offsetX; cy = H/2 + offsetY;
+    drawSolarSystem(new Date());
+    animFrame = requestAnimationFrame(loop);
+  }
+  loop();
+}
+startLoop();
+
+// ── ZOOM ──
+canvas.addEventListener('wheel', e => {
+  e.preventDefault();
+  const delta = e.deltaY > 0 ? 0.9 : 1.11;
+  scale = Math.max(0.15, Math.min(8, scale * delta));
+}, { passive: false });
+
+// ── DRAG ──
+canvas.addEventListener('mousedown', e => { isDragging=true; dragStart={x:e.clientX-offsetX, y:e.clientY-offsetY}; });
+canvas.addEventListener('mousemove', e => {
+  if (isDragging) { offsetX=e.clientX-dragStart.x; offsetY=e.clientY-dragStart.y; }
+  // Tooltip
+  const rect = canvas.getBoundingClientRect();
+  const mx = e.clientX-rect.left, my = e.clientY-rect.top;
+  const hit = getHit(mx, my);
+  const tip = document.getElementById('tooltip');
+  if (hit) {
+    tip.style.display='block';
+    tip.style.left=(e.clientX+14)+'px';
+    tip.style.top=(e.clientY-10)+'px';
+    tip.textContent = BODIES[hit].name.toUpperCase();
+    canvas.style.cursor='pointer';
+  } else {
+    tip.style.display='none';
+    canvas.style.cursor='crosshair';
+  }
+});
+canvas.addEventListener('mouseup', () => isDragging=false);
+
+// Touch
+canvas.addEventListener('touchstart', e => {
+  if (e.touches.length===1) { isDragging=true; dragStart={x:e.touches[0].clientX-offsetX,y:e.touches[0].clientY-offsetY}; }
+}, {passive:true});
+canvas.addEventListener('touchmove', e => {
+  if (isDragging && e.touches.length===1) { offsetX=e.touches[0].clientX-dragStart.x; offsetY=e.touches[0].clientY-dragStart.y; }
+}, {passive:true});
+canvas.addEventListener('touchend', () => isDragging=false);
+
+function getHit(mx, my) {
+  for (const t of hitTargets) {
+    if (t.belt) continue;
+    const d = Math.hypot(mx-t.x, my-t.y);
+    if (d <= t.r) return t.key;
+  }
+  // Cinturón como último recurso por zona anular
+  const d = Math.hypot(mx-cx, my-cy);
+  const innerR = orbitPxRadius(2.2);
+  const outerR = orbitPxRadius(3.2);
+  if (d >= innerR && d <= outerR) return 'asteroids';
+  return null;
+}
+
+// ── CLIC ──
+canvas.addEventListener('click', e => {
+  if (isDragging) return;
+  const rect = canvas.getBoundingClientRect();
+  const hit = getHit(e.clientX-rect.left, e.clientY-rect.top);
+  if (hit) showPlanet(hit);
+});
+
+// ═══════════════════════════════════════════════════
+//  PANEL DE PLANETA
+// ═══════════════════════════════════════════════════
+function showPlanet(key) {
+  const b = BODIES[key];
+  cancelAnimationFrame(animFrame);
+
+  const view = document.getElementById('planet-view');
+  view.classList.add('active');
+
+  document.getElementById('planet-name-display').textContent = b.name.toUpperCase();
+  document.getElementById('planet-name-display').style.color = b.color;
+  document.getElementById('planet-type-display').textContent = b.type;
+  document.getElementById('planet-description').textContent = b.description;
+
+  // Data grid
+  const grid = document.getElementById('data-grid');
+  grid.innerHTML = '';
+  Object.entries(b.data).forEach(([label, val]) => {
+    const card = document.createElement('div');
+    card.className = 'data-card';
+    card.innerHTML = `<div class="data-label">${label}</div>
+      <div class="data-value" style="color:${b.color}">${val.v}<span class="data-unit">${val.u}</span></div>`;
+    grid.appendChild(card);
+  });
+
+  // Composition
+  const bars = document.getElementById('comp-bars');
+  bars.innerHTML = '';
+  b.composition.forEach(c => {
+    const row = document.createElement('div');
+    row.className = 'comp-row';
+    row.innerHTML = `<div class="comp-name">${c.name}</div>
+      <div class="comp-track"><div class="comp-fill" style="width:0%;background:${c.color}" data-pct="${c.pct}"></div></div>
+      <div class="comp-pct">${c.pct}%</div>`;
+    bars.appendChild(row);
+  });
+  setTimeout(() => {
+    document.querySelectorAll('.comp-fill').forEach(el => {
+      el.style.width = el.dataset.pct + '%';
+    });
+  }, 100);
+
+  // Canvas planeta animado
+  drawPlanetCanvas(key);
+}
+
+function drawPlanetCanvas(key) {
+  const b = BODIES[key];
+  const pc = document.getElementById('planet-canvas');
+  const pctx = pc.getContext('2d');
+  const W2 = 320, H2 = 320;
+  pc.width = W2; pc.height = H2;
+  const cx2 = W2/2, cy2 = H2/2;
+  const pr = key === 'sun' ? 90 : (key === 'asteroids' ? 80 : 70);
+  let angle = 0;
+
+  function draw2() {
+    pctx.clearRect(0,0,W2,H2);
+    // Glow
+    if (b.glowColor) {
+      const g = pctx.createRadialGradient(cx2,cy2,pr,cx2,cy2,pr*2.4);
+      g.addColorStop(0, b.glowColor);
+      g.addColorStop(1,'rgba(0,0,0,0)');
+      pctx.beginPath(); pctx.arc(cx2,cy2,pr*2.4,0,Math.PI*2);
+      pctx.fillStyle=g; pctx.fill();
+    }
+    if (b.hasRings) drawSaturnRings2(pctx, cx2, cy2, pr);
+    // Cuerpo
+    const bg = pctx.createRadialGradient(cx2-pr*0.3,cy2-pr*0.3,pr*0.1,cx2,cy2,pr);
+    bg.addColorStop(0, lightenColor(b.color,50));
+    bg.addColorStop(0.7, b.color);
+    bg.addColorStop(1, darkenColor(b.color,40));
+    pctx.beginPath(); pctx.arc(cx2,cy2,pr,0,Math.PI*2);
+    pctx.fillStyle=bg; pctx.fill();
+    // Rotación visual (línea de referencia)
+    pctx.beginPath();
+    pctx.moveTo(cx2,cy2);
+    pctx.lineTo(cx2+Math.cos(angle)*pr,cy2+Math.sin(angle)*pr);
+    pctx.strokeStyle='rgba(0,0,0,0.2)';
+    pctx.lineWidth=2; pctx.stroke();
+    // Asteroides: mostrar como anillo
+    if (key==='asteroids') {
+      for (let i=0;i<60;i++) {
+        const a2 = (i/60)*Math.PI*2 + angle;
+        const r2 = 40+Math.sin(i*5)*15;
+        pctx.beginPath();
+        pctx.arc(cx2+Math.cos(a2)*r2, cy2+Math.sin(a2)*r2, 2, 0, Math.PI*2);
+        pctx.fillStyle='rgba(160,140,100,0.6)'; pctx.fill();
+      }
+    }
+    angle += 0.008;
+    requestAnimationFrame(draw2);
+  }
+  draw2();
+}
+
+function drawSaturnRings2(ctx2, x, y, pr) {
+  for (let i=1.5;i<=2.5;i+=0.18) {
+    ctx2.beginPath();
+    ctx2.ellipse(x,y,pr*i,pr*i*0.3,0,0,Math.PI*2);
+    ctx2.strokeStyle=`rgba(200,180,120,${0.35-(i-1.5)*0.1})`;
+    ctx2.lineWidth=pr*0.2; ctx2.stroke();
+  }
+}
+
+function darkenColor(hex, amt) {
+  const n = parseInt(hex.replace('#',''), 16);
+  const r = Math.max(0,(n>>16)-amt);
+  const g = Math.max(0,((n>>8)&0xff)-amt);
+  const b = Math.max(0,(n&0xff)-amt);
+  return `rgb(${r},${g},${b})`;
+}
+
+// Volver
+document.getElementById('back-btn').addEventListener('click', () => {
+  document.getElementById('planet-view').classList.remove('active');
+  document.getElementById('tooltip').style.display='none';
+  startLoop();
+});
+
+// ═══════════════════════════════════════════════════
+//  BÚSQUEDA
+// ═══════════════════════════════════════════════════
+const allNames = Object.entries(BODIES).map(([k,b]) => ({key:k, name:b.name}));
+const input = document.getElementById('search-input');
+const sugg = document.getElementById('search-suggestions');
+
+input.addEventListener('input', () => {
+  const q = input.value.trim().toLowerCase();
+  if (!q) { sugg.style.display='none'; return; }
+  const matches = allNames.filter(n => n.name.toLowerCase().includes(q));
+  if (!matches.length) { sugg.style.display='none'; return; }
+  sugg.innerHTML = matches.map(m => `<div data-key="${m.key}">${m.name}</div>`).join('');
+  sugg.style.display='block';
+  sugg.querySelectorAll('div').forEach(d => {
+    d.addEventListener('click', () => { showPlanet(d.dataset.key); sugg.style.display='none'; input.value=''; });
   });
 });
+
+document.getElementById('search-btn').addEventListener('click', () => {
+  const q = input.value.trim().toLowerCase();
+  const match = allNames.find(n => n.name.toLowerCase().includes(q));
+  if (match) { showPlanet(match.key); sugg.style.display='none'; input.value=''; }
+});
+
+input.addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('search-btn').click();
+  if (e.key === 'Escape') { sugg.style.display='none'; input.blur(); }
+});
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('#search-bar')) sugg.style.display='none';
+});
+
+// ═══════════════════════════════════════════════════
+//  RELOJ
+// ═══════════════════════════════════════════════════
+function updateClock() {
+  const now = new Date();
+  const opts = { weekday:'short', year:'numeric', month:'short', day:'numeric' };
+  document.getElementById('clock-date').textContent = now.toLocaleDateString('es-MX', opts).toUpperCase();
+  document.getElementById('clock-time').textContent = now.toLocaleTimeString('es-MX') + ' UTC' + (now.getTimezoneOffset()/60 > 0 ? '-' : '+') + Math.abs(now.getTimezoneOffset()/60);
+}
+updateClock();
+setInterval(updateClock, 1000);
+
+// Init
+initStars();
 </script>
 </body>
 </html>
