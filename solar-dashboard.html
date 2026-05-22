@@ -223,7 +223,7 @@ body {
   padding-top: 60px;
 }
 
-#planet-canvas {
+#planet-canvas { background: transparent;
   display: block;
 }
 
@@ -1058,6 +1058,7 @@ function lightenColor(hex, amt) {
 
 // ── LOOP ──
 let animFrame;
+let planetFrame;
 function startLoop() {
   function loop() {
     cx = W/2 + offsetX; cy = H/2 + offsetY;
@@ -1176,6 +1177,7 @@ function showPlanet(key) {
 }
 
 function drawPlanetCanvas(key) {
+  if (planetFrame) cancelAnimationFrame(planetFrame);
   const b = BODIES[key];
   const pc = document.getElementById('planet-canvas');
   const pctx = pc.getContext('2d');
@@ -1198,9 +1200,9 @@ function drawPlanetCanvas(key) {
     if (b.hasRings) drawSaturnRings2(pctx, cx2, cy2, pr);
     // Cuerpo
     const bg = pctx.createRadialGradient(cx2-pr*0.3,cy2-pr*0.3,pr*0.1,cx2,cy2,pr);
-    bg.addColorStop(0, lightenColor(b.color,50));
-    bg.addColorStop(0.7, b.color);
-    bg.addColorStop(1, darkenColor(b.color,40));
+    bg.addColorStop(0, lightenColor(b.color,60));
+    bg.addColorStop(0.5, b.color);
+    bg.addColorStop(1, darkenColor(b.color,60));
     pctx.beginPath(); pctx.arc(cx2,cy2,pr,0,Math.PI*2);
     pctx.fillStyle=bg; pctx.fill();
     // Rotación visual (línea de referencia)
@@ -1220,7 +1222,7 @@ function drawPlanetCanvas(key) {
       }
     }
     angle += 0.008;
-    requestAnimationFrame(draw2);
+    planetFrame = requestAnimationFrame(draw2);
   }
   draw2();
 }
