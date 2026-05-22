@@ -361,7 +361,7 @@ body {
 /* ── LIVE BADGE ── */
 #live-badge {
   position: fixed;
-  bottom: 16px;
+  bottom: 38px;
   right: 20px;
   font-size: 0.65rem;
   letter-spacing: 0.15em;
@@ -388,7 +388,7 @@ body {
 /* ── LEGEND ── */
 #legend {
   position: fixed;
-  bottom: 16px;
+  bottom: 38px;
   left: 20px;
   font-size: 0.62rem;
   color: var(--dim);
@@ -904,7 +904,7 @@ window.addEventListener('resize', resize);
 resize();
 
 function orbitPxRadius(ua) {
-  const logUa = Math.log(ua + 1) / Math.log(42) * 42; return logUa * getBaseScale() * scale;
+  const logUa = Math.log(ua * 3 + 1) / Math.log(127) * 42; return logUa * getBaseScale() * scale;
 }
 
 function bodyPos(key, now) {
